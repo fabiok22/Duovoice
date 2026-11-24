@@ -183,6 +183,15 @@
       box-shadow: 0 0 8px var(--ok);
     }
 
+    .sync-tag {
+      font-size: 0.78rem;
+      color: #a7f3d0;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
     .controls-row {
       display: flex;
       align-items: center;
@@ -272,6 +281,7 @@
       color: var(--muted);
       display: flex;
       justify-content: space-between;
+      gap: 8px;
     }
 
     .msg-orig {
@@ -290,7 +300,6 @@
       gap: 8px;
     }
 
-    /* Pocket / Anti-touch overlay */
     #pocketOverlay {
       position: fixed;
       inset: 0;
@@ -328,6 +337,7 @@
       <span>DuoVoice AI</span>
     </div>
     <div class="header-actions">
+      <button id="unlockAudioBtn" type="button">🔊 Sblocca Audio</button>
       <button id="pocketBtn" type="button">Tasca</button>
     </div>
   </header>
@@ -357,7 +367,10 @@
           <span id="statusDot" class="dot"></span>
           <span id="statusText">Pronto — tocca il microfono o usa il tasto cuffie</span>
         </div>
-        <span id="targetLangBadge">Traduce in: Български</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="syncStatus" class="sync-tag">Sync Firebase: attivo</span>
+          <span id="targetLangBadge">Traduce in: Български</span>
+        </div>
       </div>
 
       <div class="controls-row">
@@ -427,12 +440,15 @@
   </div>
 
   <script>
+    const FIREBASE_DB_URL = "https://duovoicechat-default-rtdb.europe-west1.firebasedatabase.app";
+
     const myLangEl = document.getElementById("myLang");
     const roomCodeEl = document.getElementById("roomCode");
     const randomRoomBtn = document.getElementById("randomRoomBtn");
     const targetLangBadge = document.getElementById("targetLangBadge");
     const statusDot = document.getElementById("statusDot");
     const statusText = document.getElementById("statusText");
+    const syncStatus = document.getElementById("syncStatus");
     const micBtn = document.getElementById("micBtn");
     const continuousToggle = document.getElementById("continuousToggle");
     const autoSpeakToggle = document.getElementById("autoSpeakToggle");
@@ -447,19 +463,31 @@
     const rateVal = document.getElementById("rateVal");
     const volVal = document.getElementById("volVal");
     const testVoiceBtn = document.getElementById("testVoiceBtn");
+    const unlockAudioBtn = document.getElementById("unlockAudioBtn");
     const chatBox = document.getElementById("chatBox");
     const pocketBtn = document.getElementById("pocketBtn");
     const pocketOverlay = document.getElementById("pocketOverlay");
     const pocketStatus = document.getElementById("pocketStatus");
     const unlockPocketBtn = document.getElementById("unlockPocketBtn");
 
+    const clientId = "client_" + Math.random().toString(36).slice(2, 10);
+    const seenMessageIds = new Set();
+    let initialRoomLoadDone = false;
+    let pollTimer = null;
+
     let availableVoices = [];
     let isListening = false;
     let recognition = null;
     let wakeLock = null;
     let holdTimer = null;
+    let audioUnlocked = false;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function getSanitizedRoom() {
+      const raw = (roomCodeEl.value || "IT-BG-42").trim().toUpperCase();
+      return raw.replace(/[^A-Z0-9_-]/g, "") || "IT-BG-42";
+    }
 
     function getTargetLang() {
       return myLangEl.value === "it-IT" ? "bg-BG" : "it-IT";
@@ -500,19 +528,31 @@
       });
     }
 
+    function unlockAudio() {
+      audioUnlocked = true;
+      unlockAudioBtn.textContent = "🔊 Audio Attivo";
+      if ("speechSynthesis" in window) {
+        const silent = new SpeechSynthesisUtterance(" ");
+        silent.volume = 0.01;
+        window.speechSynthesis.speak(silent);
+      }
+    }
+
     function speakText(text, langHint) {
       if (!("speechSynthesis" in window) || !text) return;
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      const selectedIdx = parseInt(voiceSelect.value, 10);
-      if (!Number.isNaN(selectedIdx) && availableVoices[selectedIdx]) {
-        utter.voice = availableVoices[selectedIdx];
-      }
-      utter.lang = (utter.voice && utter.voice.lang) || langHint || getTargetLang();
-      utter.pitch = parseFloat(pitchRange.value);
-      utter.rate = parseFloat(rateRange.value);
-      utter.volume = parseFloat(volRange.value);
-      window.speechSynthesis.speak(utter);
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        const selectedIdx = parseInt(voiceSelect.value, 10);
+        if (!Number.isNaN(selectedIdx) && availableVoices[selectedIdx]) {
+          utter.voice = availableVoices[selectedIdx];
+        }
+        utter.lang = (utter.voice && utter.voice.lang) || langHint || myLangEl.value;
+        utter.pitch = parseFloat(pitchRange.value);
+        utter.rate = parseFloat(rateRange.value);
+        utter.volume = parseFloat(volRange.value);
+        window.speechSynthesis.speak(utter);
+      } catch (_) {}
     }
 
     async function translateText(text, sourceLang, targetLang) {
@@ -525,19 +565,17 @@
         if (Array.isArray(data) && Array.isArray(data[0])) {
           return data[0].map(chunk => chunk[0]).join("").trim();
         }
-      } catch (err) {
-        // Fallback if network translation is blocked
-      }
+      } catch (err) {}
       return `[${dst.toUpperCase()}] ${text}`;
     }
 
-    function appendMessage({ who, origLang, origText, transText }) {
+    function appendMessage({ who, origLang, origText, transText, room, timeLabel }) {
       const div = document.createElement("div");
       div.className = `msg ${who}`;
-      const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const now = timeLabel || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       div.innerHTML = `
         <div class="msg-meta">
-          <span>${who === "mine" ? "Tu (" + origLang + ")" : "Altro (" + origLang + ")"} • Stanza ${escapeHtml(roomCodeEl.value.trim() || "DEFAULT")}</span>
+          <span>${who === "mine" ? "Tu (" + origLang + ")" : "Altro (" + origLang + ")"} • Stanza ${escapeHtml(room || getSanitizedRoom())}</span>
           <span>${now}</span>
         </div>
         <div class="msg-orig">Originale: ${escapeHtml(origText)}</div>
@@ -555,18 +593,132 @@
         .replace(/"/g, "&quot;");
     }
 
+    async function publishMessageToFirebase(room, payload) {
+      const url = `${FIREBASE_DB_URL}/rooms/${encodeURIComponent(room)}/messages.json`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        throw new Error("Errore scrittura Firebase (" + res.status + ")");
+      }
+      const created = await res.json();
+      if (created && created.name) {
+        seenMessageIds.add(created.name);
+      }
+    }
+
     async function handlePhrase(text) {
       const clean = (text || "").trim();
       if (!clean) return;
+      unlockAudio();
+
+      const room = getSanitizedRoom();
+      roomCodeEl.value = room;
       const src = myLangEl.value;
       const dst = getTargetLang();
-      setStatus("Traduzione in corso...", true);
+
+      setStatus("Traduzione e invio...", true);
       const translated = await translateText(clean, src, dst);
-      appendMessage({ who: "mine", origLang: src, origText: clean, transText: translated });
-      if (autoSpeakToggle.checked) {
-        speakText(translated, dst);
+      const nowLabel = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      appendMessage({
+        who: "mine",
+        origLang: src,
+        origText: clean,
+        transText: translated,
+        room,
+        timeLabel: nowLabel
+      });
+
+      try {
+        await publishMessageToFirebase(room, {
+          senderId: clientId,
+          origLang: src,
+          targetLang: dst,
+          origText: clean,
+          transText: translated,
+          timeLabel: nowLabel,
+          createdAt: Date.now()
+        });
+        syncStatus.textContent = "Sync Firebase: connesso (" + room + ")";
+      } catch (err) {
+        syncStatus.textContent = "Sync Firebase: errore invio";
       }
+
       setStatus(isListening ? "In ascolto..." : "Pronto", isListening);
+    }
+
+    async function pollRoomMessages() {
+      const room = getSanitizedRoom();
+      const url = `${FIREBASE_DB_URL}/rooms/${encodeURIComponent(room)}/messages.json?orderBy=%22createdAt%22&limitToLast=25`;
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) {
+          syncStatus.textContent = "Sync Firebase: verifica regole/connessione";
+          return;
+        }
+        syncStatus.textContent = "Sync Firebase: connesso (" + room + ")";
+        const data = await res.json();
+        if (!data || typeof data !== "object") {
+          initialRoomLoadDone = true;
+          return;
+        }
+
+        const entries = Object.entries(data).sort((a, b) => (a[1]?.createdAt || 0) - (b[1]?.createdAt || 0));
+        for (const [id, msg] of entries) {
+          if (!msg || seenMessageIds.has(id)) continue;
+          seenMessageIds.add(id);
+
+          if (!initialRoomLoadDone) {
+            continue;
+          }
+
+          if (msg.senderId === clientId) {
+            continue;
+          }
+
+          // Se l'altro dispositivo ha tradotto verso la mia lingua, leggo transText nella mia lingua;
+          // altrimenti traduco il testo originale nella mia lingua così sento sempre ciò che dice l'altra persona.
+          let textToSpeak = msg.transText || msg.origText || "";
+          let displayTrans = msg.transText || "";
+          const myShort = myLangEl.value.slice(0, 2);
+          const msgTargetShort = (msg.targetLang || "").slice(0, 2);
+
+          if (msgTargetShort !== myShort && msg.origText) {
+            displayTrans = await translateText(msg.origText, msg.origLang || "auto", myLangEl.value);
+            textToSpeak = displayTrans;
+          } else {
+            textToSpeak = displayTrans || msg.origText || "";
+          }
+
+          appendMessage({
+            who: "theirs",
+            origLang: msg.origLang || "?",
+            origText: msg.origText || "",
+            transText: displayTrans || textToSpeak,
+            room,
+            timeLabel: msg.timeLabel
+          });
+
+          if (autoSpeakToggle.checked && textToSpeak) {
+            speakText(textToSpeak, myLangEl.value);
+          }
+        }
+        initialRoomLoadDone = true;
+      } catch (_) {
+        syncStatus.textContent = "Sync Firebase: in attesa di rete...";
+      }
+    }
+
+    function restartRoomSync() {
+      seenMessageIds.clear();
+      initialRoomLoadDone = false;
+      chatBox.innerHTML = "";
+      if (pollTimer) clearInterval(pollTimer);
+      pollRoomMessages();
+      pollTimer = setInterval(pollRoomMessages, 1500);
     }
 
     function setStatus(msg, live) {
@@ -576,6 +728,7 @@
     }
 
     function startListening() {
+      unlockAudio();
       if (!SpeechRecognition) {
         setStatus("Riconoscimento vocale non supportato in questo browser: usa il campo testo.", false);
         return;
@@ -676,6 +829,11 @@
       }
     }
 
+    unlockAudioBtn.addEventListener("click", () => {
+      unlockAudio();
+      speakText("Audio sbloccato", myLangEl.value);
+    });
+
     pocketBtn.addEventListener("click", async () => {
       pocketOverlay.classList.add("active");
       pocketOverlay.setAttribute("aria-hidden", "false");
@@ -721,7 +879,10 @@
     randomRoomBtn.addEventListener("click", () => {
       const n = Math.floor(10 + Math.random() * 89);
       roomCodeEl.value = `IT-BG-${n}`;
+      restartRoomSync();
     });
+
+    roomCodeEl.addEventListener("change", restartRoomSync);
 
     myLangEl.addEventListener("change", updateLangBadge);
     showAllVoicesToggle.addEventListener("change", populateVoices);
@@ -737,6 +898,7 @@
     });
 
     testVoiceBtn.addEventListener("click", () => {
+      unlockAudio();
       const sample = getTargetLang() === "bg-BG"
         ? "Здравей, това е тест на гласа за превод."
         : "Ciao, questa è una prova della voce per la traduzione.";
@@ -749,6 +911,7 @@
     }
 
     updateLangBadge();
+    restartRoomSync();
   </script>
 </body>
 </html>
