@@ -32,12 +32,12 @@
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding-bottom: 90px;
+      padding-bottom: 92px;
     }
 
     header {
       padding: 12px 16px;
-      background: rgba(11, 16, 32, 0.9);
+      background: rgba(11, 16, 32, 0.92);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -112,7 +112,7 @@
     main {
       flex: 1;
       width: 100%;
-      max-width: 720px;
+      max-width: 780px;
       margin: 0 auto;
       padding: 16px;
       display: flex;
@@ -150,6 +150,15 @@
 
     details.dropdown-card > summary::-webkit-details-marker {
       display: none;
+    }
+
+    .summary-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
     }
 
     details.dropdown-card > summary::after {
@@ -303,22 +312,38 @@
       accent-color: var(--accent);
     }
 
+    /* Box conversazione ampio e comodo */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chat-order-badge {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
     .chat-box {
       flex: 1;
-      min-height: 200px;
-      max-height: 45vh;
+      min-height: 360px;
+      max-height: 64vh;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding-right: 2px;
+      padding: 4px;
+      border-radius: 12px;
+      background: rgba(9, 13, 22, 0.35);
     }
 
     .msg {
       background: var(--card-2);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 12px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -341,14 +366,15 @@
     }
 
     .msg-orig {
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       color: var(--muted);
     }
 
     .msg-trans {
-      font-size: 1.05rem;
+      font-size: 1.08rem;
       font-weight: 600;
       color: var(--text);
+      line-height: 1.4;
     }
 
     .manual-row {
@@ -356,13 +382,22 @@
       gap: 8px;
     }
 
-    /* Nuvoletta guida sempre visibile in basso mentre scorri */
+    .manual-row input[type="text"] {
+      padding: 12px 14px;
+      font-size: 1rem;
+    }
+
+    .manual-row button {
+      padding: 12px 18px;
+    }
+
+    /* Nuvoletta guida sempre visibile in basso */
     .tooltip-card {
       position: fixed;
       left: 12px;
       right: 12px;
       bottom: 12px;
-      max-width: 696px;
+      max-width: 756px;
       margin: 0 auto;
       background: #1e1b4b;
       border: 1px solid rgba(250, 204, 21, 0.65);
@@ -398,7 +433,7 @@
       outline-offset: 2px;
     }
 
-    /* Pocket / Anti-touch overlay */
+    /* Modalità Tasca */
     #pocketOverlay {
       position: fixed;
       inset: 0;
@@ -438,51 +473,60 @@
     <div class="header-actions">
       <button id="helpModeBtn" type="button" data-help="helpMode">❓ Guida tasti</button>
       <button id="unlockAudioBtn" type="button" data-help="unlockAudio">🔊 Sblocca Audio</button>
-      <button id="pocketBtn" type="button" data-help="pocket">Tasca</button>
+      <button id="pocketBtn" type="button" data-help="pocket">👖🔒 Tasca</button>
     </div>
   </header>
 
   <main>
-    <section class="card">
-      <div class="grid-2">
-        <label data-help="myLang">
-          <span id="lblMyLang">La mia lingua (parlo io)</span>
-          <select id="myLang">
-            <option value="it-IT" selected>Italiano (IT)</option>
-            <option value="bg-BG">Български / Bulgaro (BG)</option>
-          </select>
-        </label>
+    <!-- Menu a tendina: Lingue, Stanza e Database -->
+    <details id="roomDropdown" class="dropdown-card" data-help="roomDropdown">
+      <summary>
+        <span id="lblRoomSection">⚙️ Lingue, Stanza & Database</span>
+        <span id="roomSummaryPill" class="summary-right">IT → BG • IT-BG-42</span>
+      </summary>
+      <div class="dropdown-body">
+        <div class="grid-2">
+          <label data-help="myLang">
+            <span id="lblMyLang">La mia lingua (parlo io)</span>
+            <select id="myLang">
+              <option value="it-IT" selected>Italiano (IT)</option>
+              <option value="bg-BG">Български / Bulgaro (BG)</option>
+            </select>
+          </label>
 
-        <label data-help="uiLang">
-          <span id="lblUiLang">Lingua interfaccia (menu e tasti)</span>
-          <select id="uiLang">
-            <option value="it" selected>Italiano</option>
-            <option value="bg">Български (Bulgaro)</option>
-          </select>
-        </label>
-      </div>
+          <label data-help="uiLang">
+            <span id="lblUiLang">Lingua interfaccia (menu e tasti)</span>
+            <select id="uiLang">
+              <option value="it" selected>Italiano</option>
+              <option value="bg">Български (Bulgaro)</option>
+            </select>
+          </label>
+        </div>
 
-      <div class="grid-2">
-        <label data-help="room">
-          <span id="lblRoom">Codice stanza condiviso</span>
-          <div class="room-row">
-            <input id="roomCode" type="text" value="IT-BG-42" maxlength="24" />
-            <button id="randomRoomBtn" type="button" data-help="randomRoom">Casuale</button>
+        <div class="grid-2">
+          <label data-help="room">
+            <span id="lblRoom">Codice stanza condiviso</span>
+            <div class="room-row">
+              <input id="roomCode" type="text" value="IT-BG-42" maxlength="24" />
+              <button id="randomRoomBtn" type="button" data-help="randomRoom">Casuale</button>
+            </div>
+          </label>
+
+          <div class="status-bar" style="align-self: end; width: 100%;" data-help="sync">
+            <span id="syncStatus" class="sync-tag">Sync Firebase: in corso...</span>
           </div>
-        </label>
-
-        <div class="status-bar" style="align-self: end; width: 100%;" data-help="status">
-          <div>
-            <span id="statusDot" class="dot"></span>
-            <span id="statusText">Pronto</span>
-          </div>
-          <span id="targetLangBadge">Traduce in: Български</span>
         </div>
       </div>
+    </details>
 
-      <div class="status-bar">
-        <span id="syncStatus" class="sync-tag" data-help="sync">Sync Firebase: in corso...</span>
-        <span id="helpHintBar">Tocca "❓ Guida tasti" e poi un pulsante per capire a cosa serve.</span>
+    <!-- Comandi rapidi microfono + scrittura manuale -->
+    <section class="card">
+      <div class="status-bar" data-help="status">
+        <div>
+          <span id="statusDot" class="dot"></span>
+          <span id="statusText">Pronto</span>
+        </div>
+        <span id="targetLangBadge">Traduce in: Български</span>
       </div>
 
       <div class="controls-row">
@@ -498,13 +542,14 @@
       </div>
 
       <div class="manual-row" data-help="manual">
-        <input id="manualInput" type="text" placeholder="Oppure scrivi una frase di prova e premi Invia..." />
+        <input id="manualInput" type="text" placeholder="Scrivi una frase qui e premi Invia..." />
         <button id="sendManualBtn" type="button">Invia</button>
       </div>
     </section>
 
+    <!-- Menu a tendina: Carattere della voce -->
     <details id="voiceDropdown" class="dropdown-card" data-help="voiceDropdown">
-      <summary id="lblVoiceSection">Carattere della voce (locale sul telefono)</summary>
+      <summary id="lblVoiceSection">🎙️ Carattere della voce (menu a tendina)</summary>
       <div class="dropdown-body">
         <div class="grid-2">
           <label data-help="voiceSelect">
@@ -538,8 +583,12 @@
       </div>
     </details>
 
+    <!-- Chat ampia con i nuovi messaggi in cima -->
     <section class="card">
-      <strong id="lblChatSection">Conversazione & Traduzioni</strong>
+      <div class="chat-header">
+        <strong id="lblChatSection">💬 Conversazione & Traduzioni</strong>
+        <span id="lblChatOrder" class="chat-order-badge">Più recenti in alto</span>
+      </div>
       <div id="chatBox" class="chat-box" data-help="chat"></div>
     </section>
   </main>
@@ -553,9 +602,10 @@
   </div>
 
   <div id="pocketOverlay" aria-hidden="true">
+    <div style="font-size: 2.2rem;">👖🔒</div>
     <div id="pocketTitle" style="font-size: 1.15rem; font-weight: 700;">Modalità Tasca Attiva</div>
     <div id="pocketDesc" style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
-      Schermo oscurato contro i tocchi accidentali. Il microfono e l'audio restano pronti quando possibile.
+      Schermo oscurato contro i tocchi accidentali in tasca. Il microfono e l'audio restano pronti quando possibile.
     </div>
     <div id="pocketStatus" style="font-size: 0.85rem; color: #eab308;">In ascolto...</div>
     <button id="unlockPocketBtn" class="pocket-hold-btn" type="button">Tieni premuto 1,5s per sbloccare</button>
@@ -566,6 +616,7 @@
 
     const I18N = {
       it: {
+        roomSection: "⚙️ Lingue, Stanza & Database",
         myLang: "La mia lingua (parlo io)",
         uiLang: "Lingua interfaccia (menu e tasti)",
         room: "Codice stanza condiviso",
@@ -580,31 +631,31 @@
         translateToBg: "Traduce in: Български",
         translateToIt: "Traduce in: Italiano",
         syncConnected: "Sync Firebase: connesso",
-        syncRulesErr: "Sync Firebase: regole bloccate (apri .read/.write su Firebase)",
+        syncRulesErr: "Sync Firebase: regole bloccate (.read/.write)",
         syncSendErr: "Sync Firebase: errore invio",
         syncWaiting: "Sync Firebase: in attesa di rete...",
         helpBtn: "❓ Guida tasti",
         helpBtnActive: "❓ Guida ON (tocca un tasto)",
-        helpHint: 'Tocca "❓ Guida tasti" e poi un pulsante per capire a cosa serve.',
         unlockAudio: "🔊 Sblocca Audio",
         audioUnlocked: "🔊 Audio Attivo",
-        pocket: "Tasca",
+        pocket: "👖🔒 Tasca",
         micStart: "🎤 Attiva Microfono",
         micStop: "⏹ Ferma Microfono",
         continuous: "Ascolto continuo",
         autoSpeak: "Leggi traduzione",
-        manualPlaceholder: "Oppure scrivi una frase di prova e premi Invia...",
+        manualPlaceholder: "Scrivi una frase qui e premi Invia...",
         send: "Invia",
-        voiceSection: "Carattere della voce (menu a tendina)",
+        voiceSection: "🎙️ Carattere della voce (menu a tendina)",
         voiceSelect: "Voce di sintesi per la traduzione",
         allVoices: "Mostra tutte le voci del dispositivo",
         pitch: "Tono (Pitch)",
         rate: "Velocità (Rate)",
         volume: "Volume",
         testVoice: "🔊 Prova voce",
-        chatSection: "Conversazione & Traduzioni",
+        chatSection: "💬 Conversazione & Traduzioni",
+        chatOrder: "Più recenti in alto",
         pocketTitle: "Modalità Tasca Attiva",
-        pocketDesc: "Schermo oscurato contro i tocchi accidentali. Il microfono e l'audio restano pronti quando possibile.",
+        pocketDesc: "Schermo oscurato contro i tocchi accidentali in tasca. Il microfono e l'audio restano pronti quando possibile.",
         pocketHold: "Tieni premuto 1,5s per sbloccare",
         you: "Tu",
         other: "Altro",
@@ -617,8 +668,9 @@
         unlockedMsg: "Audio sbloccato",
         helpDocs: {
           helpMode: { title: "Guida tasti", text: "Attiva o disattiva la modalità spiegazione. Quando è attiva, toccando un controllo leggi cosa fa invece di attivarlo." },
-          unlockAudio: { title: "Sblocca Audio", text: "Sblocca la riproduzione vocale automatica sul telefono (utile soprattutto all'inizio della sessione)." },
-          pocket: { title: "Tasca", text: "Oscura lo schermo per evitare tocchi accidentali in tasca o nello zaino. Per uscire tieni premuto 1,5 secondi." },
+          unlockAudio: { title: "Sblocca Audio", text: "Sblocca la riproduzione vocale automatica sul browser del telefono all'inizio della sessione." },
+          pocket: { title: "Tasca (blocco schermo)", text: "Oscura lo schermo quando metti il telefono in tasca per evitare tocchi involontari. Tieni premuto 1,5 secondi per sbloccare." },
+          roomDropdown: { title: "Lingue, Stanza & Database", text: "Apre o chiude le impostazioni della tua lingua, della lingua interfaccia, del codice stanza e della connessione Firebase." },
           myLang: { title: "La mia lingua", text: "Indica la lingua in cui parli tu (Italiano o Bulgaro) e verso quale lingua tradurre ciò che dici." },
           uiLang: { title: "Lingua interfaccia", text: "Cambia la lingua dei menu, dei pulsanti e delle etichette dell'app tra Italiano e Bulgaro." },
           room: { title: "Codice stanza condiviso", text: "Inserisci lo stesso codice tuo e dell'altra persona (es. IT-BG-42) per scambiarvi i messaggi nella stessa stanza." },
@@ -626,7 +678,7 @@
           status: { title: "Stato e lingua di destinazione", text: "Mostra se il microfono è attivo o in attesa e indica la lingua in cui vengono tradotte le tue frasi." },
           sync: { title: "Stato sincronizzazione Firebase", text: "Indica se il telefono è collegato al database in tempo reale per inviare e ricevere i messaggi a distanza." },
           mic: { title: "Attiva / Ferma Microfono", text: "Avvia o ferma il riconoscimento vocale per dettare le frasi a voce." },
-          continuous: { title: "Ascolto continuo", text: "Se attivo, fa ripartire automaticamente il microfono dopo ogni frase riconosciuta." },
+          continuous: { title: "Ascolto continuo", text: "Riavvia automaticamente il microfono dopo ogni frase riconosciuta, così parli a mani libere senza ripremere il tasto." },
           autoSpeak: { title: "Leggi traduzione", text: "Legge ad alta voce il messaggio tradotto usando la voce del telefono." },
           manual: { title: "Scrittura manuale e Invia", text: "Permette di scrivere una frase a mano e inviarla/tradurla come se l'avessi detta a voce." },
           voiceDropdown: { title: "Carattere della voce", text: "Apre o chiude il menù a tendina con voce, tono, velocità e volume." },
@@ -636,10 +688,11 @@
           rate: { title: "Velocità (Rate)", text: "Rallenta o velocizza il ritmo con cui viene letta la frase." },
           volume: { title: "Volume", text: "Regola il volume della lettura vocale." },
           testVoice: { title: "Prova voce", text: "Riproduce una frase di prova con la voce, il tono, la velocità e il volume impostati." },
-          chat: { title: "Conversazione & Traduzioni", text: "Mostra lo storico dei messaggi inviati e ricevuti con testo originale e traduzione." }
+          chat: { title: "Conversazione & Traduzioni", text: "Mostra i messaggi inviati e ricevuti con i più nuovi in cima." }
         }
       },
       bg: {
+        roomSection: "⚙️ Езици, Стая & База данни",
         myLang: "Моят език (аз говоря)",
         uiLang: "Език на интерфейса (меню и бутони)",
         room: "Споделен код на стаята",
@@ -659,26 +712,26 @@
         syncWaiting: "Синхронизация Firebase: чака мрежа...",
         helpBtn: "❓ Помощ за бутоните",
         helpBtnActive: "❓ Помощ ВКЛ (натисни бутон)",
-        helpHint: 'Натисни "❓ Помощ за бутоните" и после бутон, за да видиш за какво служи.',
         unlockAudio: "🔊 Отключи аудиото",
         audioUnlocked: "🔊 Аудиото е активно",
-        pocket: "Джоб",
+        pocket: "👖🔒 Джоб",
         micStart: "🎤 Включи микрофона",
         micStop: "⏹ Спри микрофона",
         continuous: "Непрекъснато слушане",
         autoSpeak: "Чети превода",
-        manualPlaceholder: "Или напиши изречение за тест и натисни Изпрати...",
+        manualPlaceholder: "Напиши изречение тук и натисни Изпрати...",
         send: "Изпрати",
-        voiceSection: "Характер на гласа (падащо меню)",
+        voiceSection: "🎙️ Характер на гласа (падащо меню)",
         voiceSelect: "Глас за синтез на превода",
         allVoices: "Покажи всички гласове на устройството",
         pitch: "Височина на тона (Pitch)",
         rate: "Скорост (Rate)",
         volume: "Сила на звука",
         testVoice: "🔊 Тест на гласа",
-        chatSection: "Разговор и преводи",
+        chatSection: "💬 Разговор и преводи",
+        chatOrder: "Най-новите са отгоре",
         pocketTitle: "Джобен режим е активен",
-        pocketDesc: "Екранът е затъмнен срещу случайни докосвания. Микрофонът и звукът остават готови.",
+        pocketDesc: "Екранът е затъмнен срещу случайни докосвания в джоба. Микрофонът и звукът остават готови.",
         pocketHold: "Задръж 1,5 сек за отключване",
         you: "Ти",
         other: "Другият",
@@ -691,8 +744,9 @@
         unlockedMsg: "Аудиото е отключено",
         helpDocs: {
           helpMode: { title: "Помощ за бутоните", text: "Включва или изключва режима с пояснения. Когато е включен, при натискане на бутон виждаш какво прави." },
-          unlockAudio: { title: "Отключи аудиото", text: "Отключва автоматичното озвучаване в браузъра на телефона (полезно в началото на разговора)." },
-          pocket: { title: "Джоб", text: "Затъмнява екрана против случайни докосвания в джоб или чанта. Задържа се 1,5 секунди за отключване." },
+          unlockAudio: { title: "Отключи аудиото", text: "Отключва автоматичното озвучаване в браузъра на телефона в началото на разговора." },
+          pocket: { title: "Джоб (заключване на екрана)", text: "Затъмнява екрана в джоба против случайни докосвания. Задръж 1,5 секунди за отключване." },
+          roomDropdown: { title: "Езици, Стая & База данни", text: "Отваря или затваря настройките за езика, кода на стаята и връзката с Firebase." },
           myLang: { title: "Моят език", text: "Показва на какъв език говориш ти (италиански или български) и на кой език се превежда казаното." },
           uiLang: { title: "Език на интерфейса", text: "Променя езика на бутоните, етикетите и съобщенията на приложението между български и италиански." },
           room: { title: "Споделен код на стаята", text: "Въведете еднакъв код с другия човек (напр. IT-BG-42), за да си изпращате съобщения в една и съща стая." },
@@ -700,7 +754,7 @@
           status: { title: "Състояние и целеви език", text: "Показва дали микрофонът слуша или изчаква и на какъв език се превеждат изреченията." },
           sync: { title: "Състояние на Firebase", text: "Показва дали телефонът е свързан с базата данни в реално време за разговори от разстояние." },
           mic: { title: "Включи / Спри микрофона", text: "Пуска или спира гласовото разпознаване, за да говориш с глас." },
-          continuous: { title: "Непрекъснато слушане", text: "Когато е включено, микрофонът автоматично продължава след всяко изречение." },
+          continuous: { title: "Непрекъснато слушане", text: "Автоматично включва микрофона отново след всяко изречение, за да говориш без да натискаш бутона." },
           autoSpeak: { title: "Чети превода", text: "Прочита на глас преведеното изречение с гласа на телефона." },
           manual: { title: "Ръчно писане и Изпрати", text: "Позволява да напишеш текст на ръка и да го изпратиш и преведеш." },
           voiceDropdown: { title: "Характер на гласа", text: "Отваря или затваря падащото меню за глас, тон, скорост и сила на звука." },
@@ -710,7 +764,7 @@
           rate: { title: "Скорост (Rate)", text: "Забавя или забързва четенето на текста." },
           volume: { title: "Сила на звука", text: "Регулира силата на гласовото четене." },
           testVoice: { title: "Тест на гласа", text: "Прочита пробно изречение с избрания глас, тон, скорост и сила на звука." },
-          chat: { title: "Разговор и преводи", text: "Показва изпратените и получените съобщения с оригинал и превод." }
+          chat: { title: "Разговор и преводи", text: "Показва съобщенията с най-новите най-отгоре." }
         }
       }
     };
@@ -719,11 +773,11 @@
     const uiLangEl = document.getElementById("uiLang");
     const roomCodeEl = document.getElementById("roomCode");
     const randomRoomBtn = document.getElementById("randomRoomBtn");
+    const roomSummaryPill = document.getElementById("roomSummaryPill");
     const targetLangBadge = document.getElementById("targetLangBadge");
     const statusDot = document.getElementById("statusDot");
     const statusText = document.getElementById("statusText");
     const syncStatus = document.getElementById("syncStatus");
-    const helpHintBar = document.getElementById("helpHintBar");
     const micBtn = document.getElementById("micBtn");
     const continuousToggle = document.getElementById("continuousToggle");
     const autoSpeakToggle = document.getElementById("autoSpeakToggle");
@@ -765,6 +819,55 @@
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+    function ensureQuestionMark(text, lang) {
+      const trimmed = (text || "").trim();
+      if (!trimmed) return trimmed;
+      if (/[?!.…]$/.test(trimmed)) return trimmed;
+
+      const lower = trimmed.toLowerCase();
+      const words = lower.split(/\s+/).map(w => w.replace(/[^a-zа-яàèéìòù']/gi, ""));
+      const firstWord = words[0] || "";
+      const secondWord = words[1] || "";
+
+      const shortLang = (lang || "").slice(0, 2).toLowerCase();
+
+      if (shortLang === "it") {
+        const itStarters = new Set([
+          "chi", "cosa", "che", "dove", "quando", "perché", "perche", "come",
+          "quale", "quali", "quanto", "quanta", "quanti", "quante",
+          "posso", "puoi", "può", "possiamo", "potete", "possono",
+          "hai", "ha", "avete", "hanno", "sei", "è", "sono", "siamo", "siete",
+          "vuoi", "volete", "vogliamo", "vorresti", "potresti", "faresti", "andresti",
+          "ti", "vi", "ci", "c'è", "ce", "sai", "sapete", "conosci", "capisci",
+          "ricordi", "pensi", "credi", "va"
+        ]);
+        const isItQuestion =
+          itStarters.has(firstWord) ||
+          /^(che cosa|di dove|da dove|a che ora|per quale|come mai|quanto costa|quanti anni|ti va|ti piace|va bene|è vero|non è|vero che)\b/.test(lower) ||
+          (/\b(vero|no|giusto|ok)\s*$/.test(lower) && words.length >= 2);
+
+        if (isItQuestion) return trimmed + "?";
+      }
+
+      if (shortLang === "bg") {
+        const bgStarters = new Set([
+          "кой", "коя", "кое", "кои", "какво", "защо", "кога", "къде", "откъде", "накъде",
+          "как", "колко", "дали", "мога", "можеш", "може", "можем", "можете", "могат",
+          "има", "няма", "имаш", "имате", "искаш", "искате", "знаеш", "знаете",
+          "разбираш", "разбирате", "помниш", "мислиш", "харесва"
+        ]);
+        const isBgQuestion =
+          bgStarters.has(firstWord) ||
+          secondWord === "ли" ||
+          words.includes("ли") ||
+          /^(на колко|в колко|за какво|от кога|до кога|нали)\b/.test(lower);
+
+        if (isBgQuestion) return trimmed + "?";
+      }
+
+      return trimmed;
+    }
+
     function getDict() {
       return I18N[uiLangEl.value] || I18N.it;
     }
@@ -778,6 +881,12 @@
       return myLangEl.value === "it-IT" ? "bg-BG" : "it-IT";
     }
 
+    function updateRoomSummary() {
+      const fromShort = myLangEl.value === "it-IT" ? "IT" : "BG";
+      const toShort = fromShort === "IT" ? "BG" : "IT";
+      roomSummaryPill.textContent = `${fromShort} → ${toShort} • ${getSanitizedRoom()}`;
+    }
+
     function setSyncBadge(text, isError) {
       syncStatus.textContent = text;
       syncStatus.classList.toggle("err", Boolean(isError));
@@ -786,11 +895,11 @@
     function applyUiLanguage() {
       const d = getDict();
       document.documentElement.lang = uiLangEl.value;
+      document.getElementById("lblRoomSection").textContent = d.roomSection;
       document.getElementById("lblMyLang").textContent = d.myLang;
       document.getElementById("lblUiLang").textContent = d.uiLang;
       document.getElementById("lblRoom").textContent = d.room;
       randomRoomBtn.textContent = d.randomRoom;
-      helpHintBar.textContent = d.helpHint;
       unlockAudioBtn.textContent = audioUnlocked ? d.audioUnlocked : d.unlockAudio;
       pocketBtn.textContent = d.pocket;
       micBtn.textContent = isListening ? d.micStop : d.micStart;
@@ -806,6 +915,7 @@
       document.getElementById("lblVolume").textContent = d.volume;
       testVoiceBtn.textContent = d.testVoice;
       document.getElementById("lblChatSection").textContent = d.chatSection;
+      document.getElementById("lblChatOrder").textContent = d.chatOrder;
       document.getElementById("pocketTitle").textContent = d.pocketTitle;
       document.getElementById("pocketDesc").textContent = d.pocketDesc;
       unlockPocketBtn.textContent = d.pocketHold;
@@ -819,6 +929,7 @@
       }
 
       updateLangBadge();
+      updateRoomSummary();
     }
 
     function updateLangBadge() {
@@ -891,18 +1002,23 @@
     async function translateText(text, sourceLang, targetLang) {
       const src = sourceLang.slice(0, 2);
       const dst = targetLang.slice(0, 2);
+      const hadQuestion = /\?\s*$/.test(text);
       try {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(dst)}&dt=t&q=${encodeURIComponent(text)}`;
         const res = await fetch(url);
         const data = await res.json();
         if (Array.isArray(data) && Array.isArray(data[0])) {
-          return data[0].map(chunk => chunk[0]).join("").trim();
+          let out = data[0].map(chunk => chunk[0]).join("").trim();
+          if (hadQuestion && !/\?\s*$/.test(out)) {
+            out = out.replace(/[.!…]+$/, "") + "?";
+          }
+          return ensureQuestionMark(out, targetLang);
         }
       } catch (err) {}
-      return `[${dst.toUpperCase()}] ${text}`;
+      return ensureQuestionMark(`[${dst.toUpperCase()}] ${text}`, targetLang);
     }
 
-    function appendMessage({ who, origLang, origText, transText, room, timeLabel }) {
+    function prependMessage({ who, origLang, origText, transText, room, timeLabel }) {
       const d = getDict();
       const div = document.createElement("div");
       div.className = `msg ${who}`;
@@ -915,8 +1031,9 @@
         <div class="msg-orig">${d.origLabel}: ${escapeHtml(origText)}</div>
         <div class="msg-trans">${escapeHtml(transText)}</div>
       `;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+      // Inserisce i messaggi più recenti in cima alla lista
+      chatBox.prepend(div);
+      chatBox.scrollTop = 0;
     }
 
     function escapeHtml(str) {
@@ -944,21 +1061,23 @@
     }
 
     async function handlePhrase(text) {
-      const clean = (text || "").trim();
-      if (!clean) return;
+      const rawClean = (text || "").trim();
+      if (!rawClean) return;
       unlockAudio();
 
       const d = getDict();
       const room = getSanitizedRoom();
       roomCodeEl.value = room;
+      updateRoomSummary();
       const src = myLangEl.value;
       const dst = getTargetLang();
+      const clean = ensureQuestionMark(rawClean, src);
 
       setStatus(d.statusTranslating, true, "statusTranslating");
       const translated = await translateText(clean, src, dst);
       const nowLabel = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-      appendMessage({
+      prependMessage({
         who: "mine",
         origLang: src,
         origText: clean,
@@ -1027,10 +1146,11 @@
             displayTrans = await translateText(msg.origText, msg.origLang || "auto", myLangEl.value);
             textToSpeak = displayTrans;
           } else {
-            textToSpeak = displayTrans || msg.origText || "";
+            textToSpeak = ensureQuestionMark(displayTrans || msg.origText || "", myLangEl.value);
+            displayTrans = textToSpeak;
           }
 
-          appendMessage({
+          prependMessage({
             who: "theirs",
             origLang: msg.origLang || "?",
             origText: msg.origText || "",
@@ -1053,6 +1173,7 @@
       seenMessageIds.clear();
       initialRoomLoadDone = false;
       chatBox.innerHTML = "";
+      updateRoomSummary();
       if (pollTimer) clearInterval(pollTimer);
       pollRoomMessages();
       pollTimer = setInterval(pollRoomMessages, 1500);
