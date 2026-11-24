@@ -35,14 +35,15 @@
     }
 
     header {
-      padding: 14px 16px;
-      background: rgba(11, 16, 32, 0.85);
+      padding: 12px 16px;
+      background: rgba(11, 16, 32, 0.88);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
       position: sticky;
       top: 0;
       z-index: 20;
@@ -67,6 +68,7 @@
     .header-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     button {
@@ -76,10 +78,10 @@
       color: var(--text);
       padding: 9px 12px;
       border-radius: 10px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.08s ease, background 0.15s ease;
+      transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease;
     }
 
     button:active {
@@ -97,6 +99,13 @@
       color: #fff;
       border: none;
       box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+
+    button.help-active {
+      background: var(--accent-2);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.55);
     }
 
     main {
@@ -249,7 +258,7 @@
 
     .chat-box {
       flex: 1;
-      min-height: 220px;
+      min-height: 200px;
       max-height: 45vh;
       overflow-y: auto;
       display: flex;
@@ -300,6 +309,42 @@
       gap: 8px;
     }
 
+    /* Nuvoletta / Guida rapida */
+    .tooltip-card {
+      background: #1e1b4b;
+      border: 1px solid rgba(168, 85, 247, 0.55);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: none;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+    }
+
+    .tooltip-card.visible {
+      display: flex;
+    }
+
+    .tooltip-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #fde047;
+      margin-bottom: 4px;
+    }
+
+    .tooltip-text {
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    body.help-mode [data-help] {
+      outline: 2px dashed rgba(168, 85, 247, 0.7);
+      outline-offset: 2px;
+    }
+
+    /* Pocket / Anti-touch overlay */
     #pocketOverlay {
       position: fixed;
       inset: 0;
@@ -337,102 +382,123 @@
       <span>DuoVoice AI</span>
     </div>
     <div class="header-actions">
-      <button id="unlockAudioBtn" type="button">🔊 Sblocca Audio</button>
-      <button id="pocketBtn" type="button">Tasca</button>
+      <button id="helpModeBtn" type="button" data-help="helpMode">❓ Guida tasti</button>
+      <button id="unlockAudioBtn" type="button" data-help="unlockAudio">🔊 Sblocca Audio</button>
+      <button id="pocketBtn" type="button" data-help="pocket">Tasca</button>
     </div>
   </header>
 
   <main>
+    <div id="helpBubble" class="tooltip-card" role="status" aria-live="polite">
+      <div>
+        <div id="helpBubbleTitle" class="tooltip-title"></div>
+        <div id="helpBubbleText" class="tooltip-text"></div>
+      </div>
+      <button id="closeHelpBubbleBtn" type="button">✕</button>
+    </div>
+
     <section class="card">
       <div class="grid-2">
-        <label>
-          La mia lingua (parlo io)
+        <label data-help="myLang">
+          <span id="lblMyLang">La mia lingua (parlo io)</span>
           <select id="myLang">
             <option value="it-IT" selected>Italiano (IT)</option>
             <option value="bg-BG">Български / Bulgaro (BG)</option>
           </select>
         </label>
 
-        <label>
-          Codice stanza condiviso
-          <div class="room-row">
-            <input id="roomCode" type="text" value="IT-BG-42" maxlength="24" />
-            <button id="randomRoomBtn" type="button" title="Nuovo codice">Casuale</button>
-          </div>
+        <label data-help="uiLang">
+          <span id="lblUiLang">Lingua interfaccia (menu e tasti)</span>
+          <select id="uiLang">
+            <option value="it" selected>Italiano</option>
+            <option value="bg">Български (Bulgaro)</option>
+          </select>
         </label>
       </div>
 
-      <div class="status-bar">
-        <div>
-          <span id="statusDot" class="dot"></span>
-          <span id="statusText">Pronto — tocca il microfono o usa il tasto cuffie</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span id="syncStatus" class="sync-tag">Sync Firebase: attivo</span>
+      <div class="grid-2">
+        <label data-help="room">
+          <span id="lblRoom">Codice stanza condiviso</span>
+          <div class="room-row">
+            <input id="roomCode" type="text" value="IT-BG-42" maxlength="24" />
+            <button id="randomRoomBtn" type="button" data-help="randomRoom">Casuale</button>
+          </div>
+        </label>
+
+        <div class="status-bar" style="align-self: end; width: 100%;" data-help="status">
+          <div>
+            <span id="statusDot" class="dot"></span>
+            <span id="statusText">Pronto</span>
+          </div>
           <span id="targetLangBadge">Traduce in: Български</span>
         </div>
       </div>
 
+      <div class="status-bar">
+        <span id="syncStatus" class="sync-tag" data-help="sync">Sync Firebase: attivo</span>
+        <span id="helpHintBar">Tocca "❓ Guida tasti" e poi un pulsante per capire a cosa serve.</span>
+      </div>
+
       <div class="controls-row">
-        <button id="micBtn" class="mic-btn primary" type="button">🎤 Attiva Microfono</button>
-        <label class="toggle-pill">
+        <button id="micBtn" class="mic-btn primary" type="button" data-help="mic">🎤 Attiva Microfono</button>
+        <label class="toggle-pill" data-help="continuous">
           <input id="continuousToggle" type="checkbox" checked />
-          Ascolto continuo
+          <span id="lblContinuous">Ascolto continuo</span>
         </label>
-        <label class="toggle-pill">
+        <label class="toggle-pill" data-help="autoSpeak">
           <input id="autoSpeakToggle" type="checkbox" checked />
-          Leggi traduzione
+          <span id="lblAutoSpeak">Leggi traduzione</span>
         </label>
       </div>
 
-      <div class="manual-row">
+      <div class="manual-row" data-help="manual">
         <input id="manualInput" type="text" placeholder="Oppure scrivi una frase di prova e premi Invia..." />
         <button id="sendManualBtn" type="button">Invia</button>
       </div>
     </section>
 
     <section class="card">
-      <strong>Carattere della voce (locale sul telefono)</strong>
+      <strong id="lblVoiceSection">Carattere della voce (locale sul telefono)</strong>
       <div class="grid-2">
-        <label>
-          Voce di sintesi per la traduzione
+        <label data-help="voiceSelect">
+          <span id="lblVoiceSelect">Voce di sintesi per la traduzione</span>
           <select id="voiceSelect"></select>
         </label>
-        <label class="toggle-pill" style="align-self: end; justify-content: center;">
+        <label class="toggle-pill" style="align-self: end; justify-content: center;" data-help="allVoices">
           <input id="showAllVoicesToggle" type="checkbox" />
-          Mostra tutte le voci del dispositivo
+          <span id="lblAllVoices">Mostra tutte le voci del dispositivo</span>
         </label>
       </div>
 
       <div class="voice-sliders">
-        <div class="slider-box">
-          Tono (Pitch): <strong id="pitchVal">1.00</strong>
+        <div class="slider-box" data-help="pitch">
+          <span id="lblPitch">Tono (Pitch)</span>: <strong id="pitchVal">1.00</strong>
           <input id="pitchRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
         </div>
-        <div class="slider-box">
-          Velocità (Rate): <strong id="rateVal">1.00x</strong>
+        <div class="slider-box" data-help="rate">
+          <span id="lblRate">Velocità (Rate)</span>: <strong id="rateVal">1.00x</strong>
           <input id="rateRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
         </div>
-        <div class="slider-box">
-          Volume: <strong id="volVal">100%</strong>
+        <div class="slider-box" data-help="volume">
+          <span id="lblVolume">Volume</span>: <strong id="volVal">100%</strong>
           <input id="volRange" type="range" min="0.1" max="1" step="0.05" value="1.0" />
         </div>
       </div>
 
       <div class="controls-row">
-        <button id="testVoiceBtn" type="button">🔊 Prova voce</button>
+        <button id="testVoiceBtn" type="button" data-help="testVoice">🔊 Prova voce</button>
       </div>
     </section>
 
     <section class="card">
-      <strong>Conversazione & Traduzioni</strong>
-      <div id="chatBox" class="chat-box"></div>
+      <strong id="lblChatSection">Conversazione & Traduzioni</strong>
+      <div id="chatBox" class="chat-box" data-help="chat"></div>
     </section>
   </main>
 
   <div id="pocketOverlay" aria-hidden="true">
-    <div style="font-size: 1.15rem; font-weight: 700;">Modalità Tasca Attiva</div>
-    <div style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
+    <div id="pocketTitle" style="font-size: 1.15rem; font-weight: 700;">Modalità Tasca Attiva</div>
+    <div id="pocketDesc" style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
       Schermo oscurato contro i tocchi accidentali. Il microfono e l'audio restano pronti quando possibile.
     </div>
     <div id="pocketStatus" style="font-size: 0.85rem; color: #eab308;">In ascolto...</div>
@@ -442,13 +508,164 @@
   <script>
     const FIREBASE_DB_URL = "https://duovoicechat-default-rtdb.europe-west1.firebasedatabase.app";
 
+    const I18N = {
+      it: {
+        myLang: "La mia lingua (parlo io)",
+        uiLang: "Lingua interfaccia (menu e tasti)",
+        room: "Codice stanza condiviso",
+        randomRoom: "Casuale",
+        statusReady: "Pronto",
+        statusListening: "In ascolto... parla ora",
+        statusTranslating: "Traduzione e invio...",
+        statusStopped: "Microfono fermato",
+        statusPaused: "In attesa",
+        statusMicError: "Errore microfono",
+        statusNoSpeechApi: "Riconoscimento vocale non supportato in questo browser: usa il campo testo.",
+        translateToBg: "Traduce in: Български",
+        translateToIt: "Traduce in: Italiano",
+        syncConnected: "Sync Firebase: connesso",
+        syncRulesErr: "Sync Firebase: verifica regole/connessione",
+        syncSendErr: "Sync Firebase: errore invio",
+        syncWaiting: "Sync Firebase: in attesa di rete...",
+        helpBtn: "❓ Guida tasti",
+        helpBtnActive: "❓ Guida ON (tocca un tasto)",
+        helpHint: 'Tocca "❓ Guida tasti" e poi un pulsante per capire a cosa serve.',
+        unlockAudio: "🔊 Sblocca Audio",
+        audioUnlocked: "🔊 Audio Attivo",
+        pocket: "Tasca",
+        micStart: "🎤 Attiva Microfono",
+        micStop: "⏹ Ferma Microfono",
+        continuous: "Ascolto continuo",
+        autoSpeak: "Leggi traduzione",
+        manualPlaceholder: "Oppure scrivi una frase di prova e premi Invia...",
+        send: "Invia",
+        voiceSection: "Carattere della voce (locale sul telefono)",
+        voiceSelect: "Voce di sintesi per la traduzione",
+        allVoices: "Mostra tutte le voci del dispositivo",
+        pitch: "Tono (Pitch)",
+        rate: "Velocità (Rate)",
+        volume: "Volume",
+        testVoice: "🔊 Prova voce",
+        chatSection: "Conversazione & Traduzioni",
+        pocketTitle: "Modalità Tasca Attiva",
+        pocketDesc: "Schermo oscurato contro i tocchi accidentali. Il microfono e l'audio restano pronti quando possibile.",
+        pocketHold: "Tieni premuto 1,5s per sbloccare",
+        you: "Tu",
+        other: "Altro",
+        roomLabel: "Stanza",
+        origLabel: "Originale",
+        defaultVoice: "Voce predefinita del dispositivo",
+        recommended: "Consigliata",
+        sampleBg: "Здравей, това е тест на гласа за превод.",
+        sampleIt: "Ciao, questa è una prova della voce per la traduzione.",
+        unlockedMsg: "Audio sbloccato",
+        helpDocs: {
+          helpMode: { title: "Guida tasti", text: "Attiva o disattiva la modalità spiegazione. Quando è attiva, toccando un controllo leggi cosa fa invece di attivarlo." },
+          unlockAudio: { title: "Sblocca Audio", text: "Sblocca la riproduzione vocale automatica sul telefono (utile soprattutto all'inizio della sessione)." },
+          pocket: { title: "Tasca", text: "Oscura lo schermo per evitare tocchi accidentali in tasca o nello zaino. Per uscire tieni premuto 1,5 secondi." },
+          myLang: { title: "La mia lingua", text: "Indica la lingua in cui parli tu (Italiano o Bulgaro) e verso quale lingua tradurre ciò che dici." },
+          uiLang: { title: "Lingua interfaccia", text: "Cambia la lingua dei menu, dei pulsanti e delle etichette dell'app tra Italiano e Bulgaro." },
+          room: { title: "Codice stanza condiviso", text: "Inserisci lo stesso codice tuo e dell'altra persona (es. IT-BG-42) per scambiarvi i messaggi nella stessa stanza." },
+          randomRoom: { title: "Casuale", text: "Genera un nuovo codice stanza casuale rapido." },
+          status: { title: "Stato e lingua di destinazione", text: "Mostra se il microfono è attivo o in attesa e indica la lingua in cui vengono tradotte le tue frasi." },
+          sync: { title: "Stato sincronizzazione Firebase", text: "Indica se il telefono è collegato al database in tempo reale per inviare e ricevere i messaggi a distanza." },
+          mic: { title: "Attiva / Ferma Microfono", text: "Avvia o ferma il riconoscimento vocale per dettare le frasi a voce." },
+          continuous: { title: "Ascolto continuo", text: "Se attivo, fa ripartire automaticamente il microfono dopo ogni frase riconosciuta." },
+          autoSpeak: { title: "Leggi traduzione", text: "Legge ad alta voce il messaggio tradotto usando la voce del telefono." },
+          manual: { title: "Scrittura manuale e Invia", text: "Permette di scrivere una frase a mano e inviarla/tradurla come se l'avessi detta a voce." },
+          voiceSelect: { title: "Voce di sintesi", text: "Sceglie quale voce installata sul telefono userà la sintesi vocale per leggere le frasi." },
+          allVoices: { title: "Mostra tutte le voci", text: "Mostra tutte le voci disponibili sul dispositivo anche se non corrispondono alla lingua filtrata." },
+          pitch: { title: "Tono (Pitch)", text: "Rende la voce più grave (valori bassi) o più acuta (valori alti)." },
+          rate: { title: "Velocità (Rate)", text: "Rallenta o velocizza il ritmo con cui viene letta la frase." },
+          volume: { title: "Volume", text: "Regola il volume della lettura vocale." },
+          testVoice: { title: "Prova voce", text: "Riproduce una frase di prova con la voce, il tono, la velocità e il volume impostati." },
+          chat: { title: "Conversazione & Traduzioni", text: "Mostra lo storico dei messaggi inviati e ricevuti con testo originale e traduzione." }
+        }
+      },
+      bg: {
+        myLang: "Моят език (аз говоря)",
+        uiLang: "Език на интерфейса (меню и бутони)",
+        room: "Споделен код на стаята",
+        randomRoom: "Случаен",
+        statusReady: "Готово",
+        statusListening: "Слушам... говори сега",
+        statusTranslating: "Превод и изпращане...",
+        statusStopped: "Микрофонът е спрян",
+        statusPaused: "В изчакване",
+        statusMicError: "Грешка в микрофона",
+        statusNoSpeechApi: "Гласовото разпознаване не се поддържа в този браузър: използвай текстовото поле.",
+        translateToBg: "Превежда на: Български",
+        translateToIt: "Превежда на: Italiano",
+        syncConnected: "Синхронизация Firebase: свързано",
+        syncRulesErr: "Синхронизация Firebase: провери правила/връзка",
+        syncSendErr: "Синхронизация Firebase: грешка при изпращане",
+        syncWaiting: "Синхронизация Firebase: чака мрежа...",
+        helpBtn: "❓ Помощ за бутоните",
+        helpBtnActive: "❓ Помощ ВКЛ (натисни бутон)",
+        helpHint: 'Натисни "❓ Помощ за бутоните" и после бутон, за да видиш за какво служи.',
+        unlockAudio: "🔊 Отключи аудиото",
+        audioUnlocked: "🔊 Аудиото е активно",
+        pocket: "Джоб",
+        micStart: "🎤 Включи микрофона",
+        micStop: "⏹ Спри микрофона",
+        continuous: "Непрекъснато слушане",
+        autoSpeak: "Чети превода",
+        manualPlaceholder: "Или напиши изречение за тест и натисни Изпрати...",
+        send: "Изпрати",
+        voiceSection: "Характер на гласа (локално на телефона)",
+        voiceSelect: "Глас за синтез на превода",
+        allVoices: "Покажи всички гласове на устройството",
+        pitch: "Височина на тона (Pitch)",
+        rate: "Скорост (Rate)",
+        volume: "Сила на звука",
+        testVoice: "🔊 Тест на гласа",
+        chatSection: "Разговор и преводи",
+        pocketTitle: "Джобен режим е активен",
+        pocketDesc: "Екранът е затъмнен срещу случайни докосвания. Микрофонът и звукът остават готови.",
+        pocketHold: "Задръж 1,5 сек за отключване",
+        you: "Ти",
+        other: "Другият",
+        roomLabel: "Стая",
+        origLabel: "Оригинал",
+        defaultVoice: "Глас по подразбиране на устройството",
+        recommended: "Препоръчан",
+        sampleBg: "Здравей, това е тест на гласа за превод.",
+        sampleIt: "Ciao, questa è una prova della voce per la traduzione.",
+        unlockedMsg: "Аудиото е отключено",
+        helpDocs: {
+          helpMode: { title: "Помощ за бутоните", text: "Включва или изключва режима с пояснения. Когато е включен, при натискане на бутон виждаш какво прави." },
+          unlockAudio: { title: "Отключи аудиото", text: "Отключва автоматичното озвучаване в браузъра на телефона (полезно в началото на разговора)." },
+          pocket: { title: "Джоб", text: "Затъмнява екрана против случайни докосвания в джоб или чанта. Задържа се 1,5 секунди за отключване." },
+          myLang: { title: "Моят език", text: "Показва на какъв език говориш ти (италиански или български) и на кой език се превежда казаното." },
+          uiLang: { title: "Език на интерфейса", text: "Променя езика на бутоните, етикетите и съобщенията на приложението между български и италиански." },
+          room: { title: "Споделен код на стаята", text: "Въведете еднакъв код с другия човек (напр. IT-BG-42), за да си изпращате съобщения в една и съща стая." },
+          randomRoom: { title: "Случаен", text: "Създава бърз случаен код за стаята." },
+          status: { title: "Състояние и целеви език", text: "Показва дали микрофонът слуша или изчаква и на какъв език се превеждат изреченията." },
+          sync: { title: "Състояние на Firebase", text: "Показва дали телефонът е свързан с базата данни в реално време за разговори от разстояние." },
+          mic: { title: "Включи / Спри микрофона", text: "Пуска или спира гласовото разпознаване, за да говориш с глас." },
+          continuous: { title: "Непрекъснато слушане", text: "Когато е включено, микрофонът автоматично продължава след всяко изречение." },
+          autoSpeak: { title: "Чети превода", text: "Прочита на глас преведеното изречение с гласа на телефона." },
+          manual: { title: "Ръчно писане и Изпрати", text: "Позволява да напишеш текст на ръка и да го изпратиш и преведеш." },
+          voiceSelect: { title: "Глас за синтез", text: "Избира кой инсталиран на телефона глас да чете преводите." },
+          allVoices: { title: "Покажи всички гласове", text: "Показва всички гласове на устройството, дори извън филтрирания език." },
+          pitch: { title: "Височина на тона (Pitch)", text: "Прави гласа по-нисък или по-висок." },
+          rate: { title: "Скорост (Rate)", text: "Забавя или забързва четенето на текста." },
+          volume: { title: "Сила на звука", text: "Регулира силата на гласовото четене." },
+          testVoice: { title: "Тест на гласа", text: "Прочита пробно изречение с избрания глас, тон, скорост и сила на звука." },
+          chat: { title: "Разговор и преводи", text: "Показва изпратените и получените съобщения с оригинал и превод." }
+        }
+      }
+    };
+
     const myLangEl = document.getElementById("myLang");
+    const uiLangEl = document.getElementById("uiLang");
     const roomCodeEl = document.getElementById("roomCode");
     const randomRoomBtn = document.getElementById("randomRoomBtn");
     const targetLangBadge = document.getElementById("targetLangBadge");
     const statusDot = document.getElementById("statusDot");
     const statusText = document.getElementById("statusText");
     const syncStatus = document.getElementById("syncStatus");
+    const helpHintBar = document.getElementById("helpHintBar");
     const micBtn = document.getElementById("micBtn");
     const continuousToggle = document.getElementById("continuousToggle");
     const autoSpeakToggle = document.getElementById("autoSpeakToggle");
@@ -464,6 +681,11 @@
     const volVal = document.getElementById("volVal");
     const testVoiceBtn = document.getElementById("testVoiceBtn");
     const unlockAudioBtn = document.getElementById("unlockAudioBtn");
+    const helpModeBtn = document.getElementById("helpModeBtn");
+    const helpBubble = document.getElementById("helpBubble");
+    const helpBubbleTitle = document.getElementById("helpBubbleTitle");
+    const helpBubbleText = document.getElementById("helpBubbleText");
+    const closeHelpBubbleBtn = document.getElementById("closeHelpBubbleBtn");
     const chatBox = document.getElementById("chatBox");
     const pocketBtn = document.getElementById("pocketBtn");
     const pocketOverlay = document.getElementById("pocketOverlay");
@@ -481,8 +703,13 @@
     let wakeLock = null;
     let holdTimer = null;
     let audioUnlocked = false;
+    let helpMode = false;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function getDict() {
+      return I18N[uiLangEl.value] || I18N.it;
+    }
 
     function getSanitizedRoom() {
       const raw = (roomCodeEl.value || "IT-BG-42").trim().toUpperCase();
@@ -493,14 +720,54 @@
       return myLangEl.value === "it-IT" ? "bg-BG" : "it-IT";
     }
 
+    function applyUiLanguage() {
+      const d = getDict();
+      document.documentElement.lang = uiLangEl.value;
+      document.getElementById("lblMyLang").textContent = d.myLang;
+      document.getElementById("lblUiLang").textContent = d.uiLang;
+      document.getElementById("lblRoom").textContent = d.room;
+      randomRoomBtn.textContent = d.randomRoom;
+      helpHintBar.textContent = d.helpHint;
+      unlockAudioBtn.textContent = audioUnlocked ? d.audioUnlocked : d.unlockAudio;
+      pocketBtn.textContent = d.pocket;
+      micBtn.textContent = isListening ? d.micStop : d.micStart;
+      document.getElementById("lblContinuous").textContent = d.continuous;
+      document.getElementById("lblAutoSpeak").textContent = d.autoSpeak;
+      manualInput.placeholder = d.manualPlaceholder;
+      sendManualBtn.textContent = d.send;
+      document.getElementById("lblVoiceSection").textContent = d.voiceSection;
+      document.getElementById("lblVoiceSelect").textContent = d.voiceSelect;
+      document.getElementById("lblAllVoices").textContent = d.allVoices;
+      document.getElementById("lblPitch").textContent = d.pitch;
+      document.getElementById("lblRate").textContent = d.rate;
+      document.getElementById("lblVolume").textContent = d.volume;
+      testVoiceBtn.textContent = d.testVoice;
+      document.getElementById("lblChatSection").textContent = d.chatSection;
+      document.getElementById("pocketTitle").textContent = d.pocketTitle;
+      document.getElementById("pocketDesc").textContent = d.pocketDesc;
+      unlockPocketBtn.textContent = d.pocketHold;
+
+      helpModeBtn.textContent = helpMode ? d.helpBtnActive : d.helpBtn;
+      helpModeBtn.classList.toggle("help-active", helpMode);
+      document.body.classList.toggle("help-mode", helpMode);
+
+      if (!isListening && statusText.dataset.key) {
+        statusText.textContent = d[statusText.dataset.key] || statusText.textContent;
+      }
+
+      updateLangBadge();
+    }
+
     function updateLangBadge() {
+      const d = getDict();
       const target = getTargetLang();
-      targetLangBadge.textContent = target === "bg-BG" ? "Traduce in: Български" : "Traduce in: Italiano";
+      targetLangBadge.textContent = target === "bg-BG" ? d.translateToBg : d.translateToIt;
       populateVoices();
     }
 
     function populateVoices() {
       if (!("speechSynthesis" in window)) return;
+      const d = getDict();
       availableVoices = window.speechSynthesis.getVoices() || [];
       const target = getTargetLang();
       const shortLang = target.slice(0, 2).toLowerCase();
@@ -515,7 +782,7 @@
       if (!list.length) {
         const opt = document.createElement("option");
         opt.value = "";
-        opt.textContent = "Voce predefinita del dispositivo";
+        opt.textContent = d.defaultVoice;
         voiceSelect.appendChild(opt);
         return;
       }
@@ -523,14 +790,14 @@
       list.forEach((v, idx) => {
         const opt = document.createElement("option");
         opt.value = String(availableVoices.indexOf(v));
-        opt.textContent = `${v.name} (${v.lang})${idx === 0 ? " • Consigliata" : ""}`;
+        opt.textContent = `${v.name} (${v.lang})${idx === 0 ? " • " + d.recommended : ""}`;
         voiceSelect.appendChild(opt);
       });
     }
 
     function unlockAudio() {
       audioUnlocked = true;
-      unlockAudioBtn.textContent = "🔊 Audio Attivo";
+      unlockAudioBtn.textContent = getDict().audioUnlocked;
       if ("speechSynthesis" in window) {
         const silent = new SpeechSynthesisUtterance(" ");
         silent.volume = 0.01;
@@ -570,15 +837,16 @@
     }
 
     function appendMessage({ who, origLang, origText, transText, room, timeLabel }) {
+      const d = getDict();
       const div = document.createElement("div");
       div.className = `msg ${who}`;
       const now = timeLabel || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       div.innerHTML = `
         <div class="msg-meta">
-          <span>${who === "mine" ? "Tu (" + origLang + ")" : "Altro (" + origLang + ")"} • Stanza ${escapeHtml(room || getSanitizedRoom())}</span>
+          <span>${who === "mine" ? d.you : d.other} (${escapeHtml(origLang)}) • ${d.roomLabel} ${escapeHtml(room || getSanitizedRoom())}</span>
           <span>${now}</span>
         </div>
-        <div class="msg-orig">Originale: ${escapeHtml(origText)}</div>
+        <div class="msg-orig">${d.origLabel}: ${escapeHtml(origText)}</div>
         <div class="msg-trans">${escapeHtml(transText)}</div>
       `;
       chatBox.appendChild(div);
@@ -614,12 +882,13 @@
       if (!clean) return;
       unlockAudio();
 
+      const d = getDict();
       const room = getSanitizedRoom();
       roomCodeEl.value = room;
       const src = myLangEl.value;
       const dst = getTargetLang();
 
-      setStatus("Traduzione e invio...", true);
+      setStatus(d.statusTranslating, true, "statusTranslating");
       const translated = await translateText(clean, src, dst);
       const nowLabel = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -642,24 +911,25 @@
           timeLabel: nowLabel,
           createdAt: Date.now()
         });
-        syncStatus.textContent = "Sync Firebase: connesso (" + room + ")";
+        syncStatus.textContent = `${d.syncConnected} (${room})`;
       } catch (err) {
-        syncStatus.textContent = "Sync Firebase: errore invio";
+        syncStatus.textContent = d.syncSendErr;
       }
 
-      setStatus(isListening ? "In ascolto..." : "Pronto", isListening);
+      setStatus(isListening ? d.statusListening : d.statusReady, isListening, isListening ? "statusListening" : "statusReady");
     }
 
     async function pollRoomMessages() {
+      const d = getDict();
       const room = getSanitizedRoom();
       const url = `${FIREBASE_DB_URL}/rooms/${encodeURIComponent(room)}/messages.json?orderBy=%22createdAt%22&limitToLast=25`;
       try {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
-          syncStatus.textContent = "Sync Firebase: verifica regole/connessione";
+          syncStatus.textContent = d.syncRulesErr;
           return;
         }
-        syncStatus.textContent = "Sync Firebase: connesso (" + room + ")";
+        syncStatus.textContent = `${d.syncConnected} (${room})`;
         const data = await res.json();
         if (!data || typeof data !== "object") {
           initialRoomLoadDone = true;
@@ -671,16 +941,10 @@
           if (!msg || seenMessageIds.has(id)) continue;
           seenMessageIds.add(id);
 
-          if (!initialRoomLoadDone) {
+          if (!initialRoomLoadDone || msg.senderId === clientId) {
             continue;
           }
 
-          if (msg.senderId === clientId) {
-            continue;
-          }
-
-          // Se l'altro dispositivo ha tradotto verso la mia lingua, leggo transText nella mia lingua;
-          // altrimenti traduco il testo originale nella mia lingua così sento sempre ciò che dice l'altra persona.
           let textToSpeak = msg.transText || msg.origText || "";
           let displayTrans = msg.transText || "";
           const myShort = myLangEl.value.slice(0, 2);
@@ -708,7 +972,7 @@
         }
         initialRoomLoadDone = true;
       } catch (_) {
-        syncStatus.textContent = "Sync Firebase: in attesa di rete...";
+        syncStatus.textContent = d.syncWaiting;
       }
     }
 
@@ -721,16 +985,18 @@
       pollTimer = setInterval(pollRoomMessages, 1500);
     }
 
-    function setStatus(msg, live) {
+    function setStatus(msg, live, key) {
       statusText.textContent = msg;
+      if (key) statusText.dataset.key = key;
       pocketStatus.textContent = msg;
       statusDot.classList.toggle("live", Boolean(live));
     }
 
     function startListening() {
       unlockAudio();
+      const d = getDict();
       if (!SpeechRecognition) {
-        setStatus("Riconoscimento vocale non supportato in questo browser: usa il campo testo.", false);
+        setStatus(d.statusNoSpeechApi, false, "statusNoSpeechApi");
         return;
       }
       if (isListening) return;
@@ -742,9 +1008,9 @@
 
       recognition.onstart = () => {
         isListening = true;
-        micBtn.textContent = "⏹ Ferma Microfono";
+        micBtn.textContent = getDict().micStop;
         micBtn.classList.add("active-mic");
-        setStatus("In ascolto... parla ora", true);
+        setStatus(getDict().statusListening, true, "statusListening");
         updateMediaSession("playing");
       };
 
@@ -754,12 +1020,12 @@
       };
 
       recognition.onerror = (e) => {
-        setStatus(`Errore microfono: ${e.error}`, false);
+        setStatus(`${getDict().statusMicError}: ${e.error}`, false);
       };
 
       recognition.onend = () => {
         isListening = false;
-        micBtn.textContent = "🎤 Attiva Microfono";
+        micBtn.textContent = getDict().micStart;
         micBtn.classList.remove("active-mic");
         if (continuousToggle.checked && !pocketOverlay.classList.contains("active")) {
           setTimeout(() => {
@@ -768,7 +1034,7 @@
             }
           }, 250);
         } else {
-          setStatus("In attesa", false);
+          setStatus(getDict().statusPaused, false, "statusPaused");
           updateMediaSession("paused");
         }
       };
@@ -776,7 +1042,7 @@
       try {
         recognition.start();
       } catch (err) {
-        setStatus("Impossibile avviare il microfono", false);
+        setStatus(d.statusMicError, false, "statusMicError");
       }
     }
 
@@ -786,9 +1052,9 @@
       if (recognition) {
         try { recognition.stop(); } catch (_) {}
       }
-      micBtn.textContent = "🎤 Attiva Microfono";
+      micBtn.textContent = getDict().micStart;
       micBtn.classList.remove("active-mic");
-      setStatus("Microfono fermato", false);
+      setStatus(getDict().statusStopped, false, "statusStopped");
       updateMediaSession("paused");
     }
 
@@ -829,9 +1095,46 @@
       }
     }
 
+    function showHelpForKey(key) {
+      const doc = getDict().helpDocs[key];
+      if (!doc) return;
+      helpBubbleTitle.textContent = doc.title;
+      helpBubbleText.textContent = doc.text;
+      helpBubble.classList.add("visible");
+      helpBubble.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // Intercetta i tocchi sui controlli quando è attiva la modalità Guida tasti
+    document.addEventListener("click", (e) => {
+      const target = e.target.closest("[data-help]");
+      if (!target) return;
+      const key = target.getAttribute("data-help");
+      if (key === "helpMode") {
+        helpMode = !helpMode;
+        if (!helpMode) {
+          helpBubble.classList.remove("visible");
+        } else {
+          showHelpForKey("helpMode");
+        }
+        applyUiLanguage();
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (helpMode) {
+        e.preventDefault();
+        e.stopPropagation();
+        showHelpForKey(key);
+      }
+    }, true);
+
+    closeHelpBubbleBtn.addEventListener("click", () => {
+      helpBubble.classList.remove("visible");
+    });
+
     unlockAudioBtn.addEventListener("click", () => {
       unlockAudio();
-      speakText("Audio sbloccato", myLangEl.value);
+      speakText(getDict().unlockedMsg, myLangEl.value);
     });
 
     pocketBtn.addEventListener("click", async () => {
@@ -884,7 +1187,13 @@
 
     roomCodeEl.addEventListener("change", restartRoomSync);
 
-    myLangEl.addEventListener("change", updateLangBadge);
+    myLangEl.addEventListener("change", () => {
+      // Se l'utente non ha forzato manualmente la lingua interfaccia in modo opposto, allineala comodamente o lascia che scelga
+      uiLangEl.value = myLangEl.value === "bg-BG" ? "bg" : "it";
+      applyUiLanguage();
+    });
+
+    uiLangEl.addEventListener("change", applyUiLanguage);
     showAllVoicesToggle.addEventListener("change", populateVoices);
 
     pitchRange.addEventListener("input", () => {
@@ -899,9 +1208,8 @@
 
     testVoiceBtn.addEventListener("click", () => {
       unlockAudio();
-      const sample = getTargetLang() === "bg-BG"
-        ? "Здравей, това е тест на гласа за превод."
-        : "Ciao, questa è una prova della voce per la traduzione.";
+      const d = getDict();
+      const sample = getTargetLang() === "bg-BG" ? d.sampleBg : d.sampleIt;
       speakText(sample, getTargetLang());
     });
 
@@ -910,7 +1218,8 @@
       window.speechSynthesis.onvoiceschanged = populateVoices;
     }
 
-    updateLangBadge();
+    setStatus(getDict().statusReady, false, "statusReady");
+    applyUiLanguage();
     restartRoomSync();
   </script>
 </body>
