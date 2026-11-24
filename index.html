@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>DuoVoice AI — Italiano ↔ Български</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #131c33;
+      --card-2: #1a2542;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #eab308;
+      --accent-2: #a855f7;
+      --ok: #22c55e;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #182342 0%, var(--bg) 65%);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 14px 16px;
+      background: rgba(11, 16, 32, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .brand-badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(234, 179, 8, 0.6);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      font-family: inherit;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #f59e0b);
+      color: #090d16;
+      border: none;
+    }
+
+    button.active-mic {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .room-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: var(--muted);
+    }
+
+    .dot.live {
+      background: var(--ok);
+      box-shadow: 0 0 8px var(--ok);
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mic-btn {
+      flex: 1;
+      min-width: 180px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      border-radius: 14px;
+    }
+
+    .toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .voice-sliders {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .voice-sliders {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .slider-box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .slider-box input[type="range"] {
+      width: 100%;
+      margin-top: 6px;
+      accent-color: var(--accent);
+    }
+
+    .chat-box {
+      flex: 1;
+      min-height: 220px;
+      max-height: 45vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 2px;
+    }
+
+    .msg {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .msg.mine {
+      border-left: 4px solid var(--accent);
+    }
+
+    .msg.theirs {
+      border-left: 4px solid var(--accent-2);
+    }
+
+    .msg-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .msg-orig {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .msg-trans {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .manual-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Pocket / Anti-touch overlay */
+    #pocketOverlay {
+      position: fixed;
+      inset: 0;
+      background: #04060c;
+      color: #cbd5e1;
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      gap: 18px;
+      user-select: none;
+    }
+
+    #pocketOverlay.active {
+      display: flex;
+    }
+
+    .pocket-hold-btn {
+      padding: 16px 24px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-badge"></span>
+      <span>DuoVoice AI</span>
+    </div>
+    <div class="header-actions">
+      <button id="pocketBtn" type="button">Tasca</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="grid-2">
+        <label>
+          La mia lingua (parlo io)
+          <select id="myLang">
+            <option value="it-IT" selected>Italiano (IT)</option>
+            <option value="bg-BG">Български / Bulgaro (BG)</option>
+          </select>
+        </label>
+
+        <label>
+          Codice stanza condiviso
+          <div class="room-row">
+            <input id="roomCode" type="text" value="IT-BG-42" maxlength="24" />
+            <button id="randomRoomBtn" type="button" title="Nuovo codice">Casuale</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="status-bar">
+        <div>
+          <span id="statusDot" class="dot"></span>
+          <span id="statusText">Pronto — tocca il microfono o usa il tasto cuffie</span>
+        </div>
+        <span id="targetLangBadge">Traduce in: Български</span>
+      </div>
+
+      <div class="controls-row">
+        <button id="micBtn" class="mic-btn primary" type="button">🎤 Attiva Microfono</button>
+        <label class="toggle-pill">
+          <input id="continuousToggle" type="checkbox" checked />
+          Ascolto continuo
+        </label>
+        <label class="toggle-pill">
+          <input id="autoSpeakToggle" type="checkbox" checked />
+          Leggi traduzione
+        </label>
+      </div>
+
+      <div class="manual-row">
+        <input id="manualInput" type="text" placeholder="Oppure scrivi una frase di prova e premi Invia..." />
+        <button id="sendManualBtn" type="button">Invia</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <strong>Carattere della voce (locale sul telefono)</strong>
+      <div class="grid-2">
+        <label>
+          Voce di sintesi per la traduzione
+          <select id="voiceSelect"></select>
+        </label>
+        <label class="toggle-pill" style="align-self: end; justify-content: center;">
+          <input id="showAllVoicesToggle" type="checkbox" />
+          Mostra tutte le voci del dispositivo
+        </label>
+      </div>
+
+      <div class="voice-sliders">
+        <div class="slider-box">
+          Tono (Pitch): <strong id="pitchVal">1.00</strong>
+          <input id="pitchRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
+        </div>
+        <div class="slider-box">
+          Velocità (Rate): <strong id="rateVal">1.00x</strong>
+          <input id="rateRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
+        </div>
+        <div class="slider-box">
+          Volume: <strong id="volVal">100%</strong>
+          <input id="volRange" type="range" min="0.1" max="1" step="0.05" value="1.0" />
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button id="testVoiceBtn" type="button">🔊 Prova voce</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <strong>Conversazione & Traduzioni</strong>
+      <div id="chatBox" class="chat-box"></div>
+    </section>
+  </main>
+
+  <div id="pocketOverlay" aria-hidden="true">
+    <div style="font-size: 1.15rem; font-weight: 700;">Modalità Tasca Attiva</div>
+    <div style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
+      Schermo oscurato contro i tocchi accidentali. Il microfono e l'audio restano pronti quando possibile.
+    </div>
+    <div id="pocketStatus" style="font-size: 0.85rem; color: #eab308;">In ascolto...</div>
+    <button id="unlockPocketBtn" class="pocket-hold-btn" type="button">Tieni premuto 1,5s per sbloccare</button>
+  </div>
+
+  <script>
+    const myLangEl = document.getElementById("myLang");
+    const roomCodeEl = document.getElementById("roomCode");
+    const randomRoomBtn = document.getElementById("randomRoomBtn");
+    const targetLangBadge = document.getElementById("targetLangBadge");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const micBtn = document.getElementById("micBtn");
+    const continuousToggle = document.getElementById("continuousToggle");
+    const autoSpeakToggle = document.getElementById("autoSpeakToggle");
+    const manualInput = document.getElementById("manualInput");
+    const sendManualBtn = document.getElementById("sendManualBtn");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const showAllVoicesToggle = document.getElementById("showAllVoicesToggle");
+    const pitchRange = document.getElementById("pitchRange");
+    const rateRange = document.getElementById("rateRange");
+    const volRange = document.getElementById("volRange");
+    const pitchVal = document.getElementById("pitchVal");
+    const rateVal = document.getElementById("rateVal");
+    const volVal = document.getElementById("volVal");
+    const testVoiceBtn = document.getElementById("testVoiceBtn");
+    const chatBox = document.getElementById("chatBox");
+    const pocketBtn = document.getElementById("pocketBtn");
+    const pocketOverlay = document.getElementById("pocketOverlay");
+    const pocketStatus = document.getElementById("pocketStatus");
+    const unlockPocketBtn = document.getElementById("unlockPocketBtn");
+
+    let availableVoices = [];
+    let isListening = false;
+    let recognition = null;
+    let wakeLock = null;
+    let holdTimer = null;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function getTargetLang() {
+      return myLangEl.value === "it-IT" ? "bg-BG" : "it-IT";
+    }
+
+    function updateLangBadge() {
+      const target = getTargetLang();
+      targetLangBadge.textContent = target === "bg-BG" ? "Traduce in: Български" : "Traduce in: Italiano";
+      populateVoices();
+    }
+
+    function populateVoices() {
+      if (!("speechSynthesis" in window)) return;
+      availableVoices = window.speechSynthesis.getVoices() || [];
+      const target = getTargetLang();
+      const shortLang = target.slice(0, 2).toLowerCase();
+
+      const filtered = showAllVoicesToggle.checked
+        ? availableVoices
+        : availableVoices.filter(v => (v.lang || "").toLowerCase().startsWith(shortLang));
+
+      const list = filtered.length ? filtered : availableVoices;
+      voiceSelect.innerHTML = "";
+
+      if (!list.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Voce predefinita del dispositivo";
+        voiceSelect.appendChild(opt);
+        return;
+      }
+
+      list.forEach((v, idx) => {
+        const opt = document.createElement("option");
+        opt.value = String(availableVoices.indexOf(v));
+        opt.textContent = `${v.name} (${v.lang})${idx === 0 ? " • Consigliata" : ""}`;
+        voiceSelect.appendChild(opt);
+      });
+    }
+
+    function speakText(text, langHint) {
+      if (!("speechSynthesis" in window) || !text) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      const selectedIdx = parseInt(voiceSelect.value, 10);
+      if (!Number.isNaN(selectedIdx) && availableVoices[selectedIdx]) {
+        utter.voice = availableVoices[selectedIdx];
+      }
+      utter.lang = (utter.voice && utter.voice.lang) || langHint || getTargetLang();
+      utter.pitch = parseFloat(pitchRange.value);
+      utter.rate = parseFloat(rateRange.value);
+      utter.volume = parseFloat(volRange.value);
+      window.speechSynthesis.speak(utter);
+    }
+
+    async function translateText(text, sourceLang, targetLang) {
+      const src = sourceLang.slice(0, 2);
+      const dst = targetLang.slice(0, 2);
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(dst)}&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          return data[0].map(chunk => chunk[0]).join("").trim();
+        }
+      } catch (err) {
+        // Fallback if network translation is blocked
+      }
+      return `[${dst.toUpperCase()}] ${text}`;
+    }
+
+    function appendMessage({ who, origLang, origText, transText }) {
+      const div = document.createElement("div");
+      div.className = `msg ${who}`;
+      const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      div.innerHTML = `
+        <div class="msg-meta">
+          <span>${who === "mine" ? "Tu (" + origLang + ")" : "Altro (" + origLang + ")"} • Stanza ${escapeHtml(roomCodeEl.value.trim() || "DEFAULT")}</span>
+          <span>${now}</span>
+        </div>
+        <div class="msg-orig">Originale: ${escapeHtml(origText)}</div>
+        <div class="msg-trans">${escapeHtml(transText)}</div>
+      `;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function handlePhrase(text) {
+      const clean = (text || "").trim();
+      if (!clean) return;
+      const src = myLangEl.value;
+      const dst = getTargetLang();
+      setStatus("Traduzione in corso...", true);
+      const translated = await translateText(clean, src, dst);
+      appendMessage({ who: "mine", origLang: src, origText: clean, transText: translated });
+      if (autoSpeakToggle.checked) {
+        speakText(translated, dst);
+      }
+      setStatus(isListening ? "In ascolto..." : "Pronto", isListening);
+    }
+
+    function setStatus(msg, live) {
+      statusText.textContent = msg;
+      pocketStatus.textContent = msg;
+      statusDot.classList.toggle("live", Boolean(live));
+    }
+
+    function startListening() {
+      if (!SpeechRecognition) {
+        setStatus("Riconoscimento vocale non supportato in questo browser: usa il campo testo.", false);
+        return;
+      }
+      if (isListening) return;
+
+      recognition = new SpeechRecognition();
+      recognition.lang = myLangEl.value;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        isListening = true;
+        micBtn.textContent = "⏹ Ferma Microfono";
+        micBtn.classList.add("active-mic");
+        setStatus("In ascolto... parla ora", true);
+        updateMediaSession("playing");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript;
+        handlePhrase(transcript);
+      };
+
+      recognition.onerror = (e) => {
+        setStatus(`Errore microfono: ${e.error}`, false);
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        micBtn.textContent = "🎤 Attiva Microfono";
+        micBtn.classList.remove("active-mic");
+        if (continuousToggle.checked && !pocketOverlay.classList.contains("active")) {
+          setTimeout(() => {
+            if (continuousToggle.checked && !isListening) {
+              startListening();
+            }
+          }, 250);
+        } else {
+          setStatus("In attesa", false);
+          updateMediaSession("paused");
+        }
+      };
+
+      try {
+        recognition.start();
+      } catch (err) {
+        setStatus("Impossibile avviare il microfono", false);
+      }
+    }
+
+    function stopListening() {
+      continuousToggle.checked = false;
+      isListening = false;
+      if (recognition) {
+        try { recognition.stop(); } catch (_) {}
+      }
+      micBtn.textContent = "🎤 Attiva Microfono";
+      micBtn.classList.remove("active-mic");
+      setStatus("Microfono fermato", false);
+      updateMediaSession("paused");
+    }
+
+    function toggleListening() {
+      if (isListening) {
+        stopListening();
+      } else {
+        continuousToggle.checked = true;
+        startListening();
+      }
+    }
+
+    function updateMediaSession(state) {
+      if (!("mediaSession" in navigator)) return;
+      try {
+        navigator.mediaSession.playbackState = state;
+        navigator.mediaSession.setActionHandler("play", () => {
+          if (!isListening) startListening();
+        });
+        navigator.mediaSession.setActionHandler("pause", () => {
+          if (isListening) stopListening();
+        });
+      } catch (_) {}
+    }
+
+    async function requestWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+        }
+      } catch (_) {}
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+      }
+    }
+
+    pocketBtn.addEventListener("click", async () => {
+      pocketOverlay.classList.add("active");
+      pocketOverlay.setAttribute("aria-hidden", "false");
+      await requestWakeLock();
+      if (!isListening) startListening();
+    });
+
+    function startUnlockHold() {
+      holdTimer = setTimeout(() => {
+        pocketOverlay.classList.remove("active");
+        pocketOverlay.setAttribute("aria-hidden", "true");
+        releaseWakeLock();
+      }, 1500);
+    }
+
+    function cancelUnlockHold() {
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+    }
+
+    unlockPocketBtn.addEventListener("pointerdown", startUnlockHold);
+    unlockPocketBtn.addEventListener("pointerup", cancelUnlockHold);
+    unlockPocketBtn.addEventListener("pointerleave", cancelUnlockHold);
+    unlockPocketBtn.addEventListener("pointercancel", cancelUnlockHold);
+
+    micBtn.addEventListener("click", toggleListening);
+
+    sendManualBtn.addEventListener("click", () => {
+      const val = manualInput.value.trim();
+      if (!val) return;
+      manualInput.value = "";
+      handlePhrase(val);
+    });
+
+    manualInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        sendManualBtn.click();
+      }
+    });
+
+    randomRoomBtn.addEventListener("click", () => {
+      const n = Math.floor(10 + Math.random() * 89);
+      roomCodeEl.value = `IT-BG-${n}`;
+    });
+
+    myLangEl.addEventListener("change", updateLangBadge);
+    showAllVoicesToggle.addEventListener("change", populateVoices);
+
+    pitchRange.addEventListener("input", () => {
+      pitchVal.textContent = parseFloat(pitchRange.value).toFixed(2);
+    });
+    rateRange.addEventListener("input", () => {
+      rateVal.textContent = `${parseFloat(rateRange.value).toFixed(2)}x`;
+    });
+    volRange.addEventListener("input", () => {
+      volVal.textContent = `${Math.round(parseFloat(volRange.value) * 100)}%`;
+    });
+
+    testVoiceBtn.addEventListener("click", () => {
+      const sample = getTargetLang() === "bg-BG"
+        ? "Здравей, това е тест на гласа за превод."
+        : "Ciao, questa è una prova della voce per la traduzione.";
+      speakText(sample, getTargetLang());
+    });
+
+    if ("speechSynthesis" in window) {
+      populateVoices();
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    updateLangBadge();
+  </script>
+</body>
+</html>
