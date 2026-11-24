@@ -32,11 +32,12 @@
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
+      padding-bottom: 90px;
     }
 
     header {
       padding: 12px 16px;
-      background: rgba(11, 16, 32, 0.88);
+      background: rgba(11, 16, 32, 0.9);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -129,6 +130,46 @@
       gap: 12px;
     }
 
+    details.dropdown-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    details.dropdown-card > summary {
+      list-style: none;
+      cursor: pointer;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      user-select: none;
+    }
+
+    details.dropdown-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.dropdown-card > summary::after {
+      content: "▼";
+      font-size: 0.78rem;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+    }
+
+    details.dropdown-card[open] > summary::after {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-body {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -199,6 +240,12 @@
       border: 1px solid rgba(34, 197, 94, 0.25);
       padding: 4px 8px;
       border-radius: 999px;
+    }
+
+    .sync-tag.err {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.35);
     }
 
     .controls-row {
@@ -309,17 +356,24 @@
       gap: 8px;
     }
 
-    /* Nuvoletta / Guida rapida */
+    /* Nuvoletta guida sempre visibile in basso mentre scorri */
     .tooltip-card {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      max-width: 696px;
+      margin: 0 auto;
       background: #1e1b4b;
-      border: 1px solid rgba(168, 85, 247, 0.55);
+      border: 1px solid rgba(250, 204, 21, 0.65);
       border-radius: 14px;
       padding: 12px 14px;
       display: none;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      z-index: 900;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
     }
 
     .tooltip-card.visible {
@@ -335,12 +389,12 @@
 
     .tooltip-text {
       font-size: 0.86rem;
-      color: #e2e8f0;
+      color: #f8fafc;
       line-height: 1.4;
     }
 
     body.help-mode [data-help] {
-      outline: 2px dashed rgba(168, 85, 247, 0.7);
+      outline: 2px dashed rgba(168, 85, 247, 0.75);
       outline-offset: 2px;
     }
 
@@ -389,14 +443,6 @@
   </header>
 
   <main>
-    <div id="helpBubble" class="tooltip-card" role="status" aria-live="polite">
-      <div>
-        <div id="helpBubbleTitle" class="tooltip-title"></div>
-        <div id="helpBubbleText" class="tooltip-text"></div>
-      </div>
-      <button id="closeHelpBubbleBtn" type="button">✕</button>
-    </div>
-
     <section class="card">
       <div class="grid-2">
         <label data-help="myLang">
@@ -435,7 +481,7 @@
       </div>
 
       <div class="status-bar">
-        <span id="syncStatus" class="sync-tag" data-help="sync">Sync Firebase: attivo</span>
+        <span id="syncStatus" class="sync-tag" data-help="sync">Sync Firebase: in corso...</span>
         <span id="helpHintBar">Tocca "❓ Guida tasti" e poi un pulsante per capire a cosa serve.</span>
       </div>
 
@@ -457,44 +503,54 @@
       </div>
     </section>
 
-    <section class="card">
-      <strong id="lblVoiceSection">Carattere della voce (locale sul telefono)</strong>
-      <div class="grid-2">
-        <label data-help="voiceSelect">
-          <span id="lblVoiceSelect">Voce di sintesi per la traduzione</span>
-          <select id="voiceSelect"></select>
-        </label>
-        <label class="toggle-pill" style="align-self: end; justify-content: center;" data-help="allVoices">
-          <input id="showAllVoicesToggle" type="checkbox" />
-          <span id="lblAllVoices">Mostra tutte le voci del dispositivo</span>
-        </label>
-      </div>
+    <details id="voiceDropdown" class="dropdown-card" data-help="voiceDropdown">
+      <summary id="lblVoiceSection">Carattere della voce (locale sul telefono)</summary>
+      <div class="dropdown-body">
+        <div class="grid-2">
+          <label data-help="voiceSelect">
+            <span id="lblVoiceSelect">Voce di sintesi per la traduzione</span>
+            <select id="voiceSelect"></select>
+          </label>
+          <label class="toggle-pill" style="align-self: end; justify-content: center;" data-help="allVoices">
+            <input id="showAllVoicesToggle" type="checkbox" />
+            <span id="lblAllVoices">Mostra tutte le voci del dispositivo</span>
+          </label>
+        </div>
 
-      <div class="voice-sliders">
-        <div class="slider-box" data-help="pitch">
-          <span id="lblPitch">Tono (Pitch)</span>: <strong id="pitchVal">1.00</strong>
-          <input id="pitchRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
+        <div class="voice-sliders">
+          <div class="slider-box" data-help="pitch">
+            <span id="lblPitch">Tono (Pitch)</span>: <strong id="pitchVal">1.00</strong>
+            <input id="pitchRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
+          </div>
+          <div class="slider-box" data-help="rate">
+            <span id="lblRate">Velocità (Rate)</span>: <strong id="rateVal">1.00x</strong>
+            <input id="rateRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
+          </div>
+          <div class="slider-box" data-help="volume">
+            <span id="lblVolume">Volume</span>: <strong id="volVal">100%</strong>
+            <input id="volRange" type="range" min="0.1" max="1" step="0.05" value="1.0" />
+          </div>
         </div>
-        <div class="slider-box" data-help="rate">
-          <span id="lblRate">Velocità (Rate)</span>: <strong id="rateVal">1.00x</strong>
-          <input id="rateRange" type="range" min="0.6" max="1.5" step="0.05" value="1.0" />
-        </div>
-        <div class="slider-box" data-help="volume">
-          <span id="lblVolume">Volume</span>: <strong id="volVal">100%</strong>
-          <input id="volRange" type="range" min="0.1" max="1" step="0.05" value="1.0" />
-        </div>
-      </div>
 
-      <div class="controls-row">
-        <button id="testVoiceBtn" type="button" data-help="testVoice">🔊 Prova voce</button>
+        <div class="controls-row">
+          <button id="testVoiceBtn" type="button" data-help="testVoice">🔊 Prova voce</button>
+        </div>
       </div>
-    </section>
+    </details>
 
     <section class="card">
       <strong id="lblChatSection">Conversazione & Traduzioni</strong>
       <div id="chatBox" class="chat-box" data-help="chat"></div>
     </section>
   </main>
+
+  <div id="helpBubble" class="tooltip-card" role="status" aria-live="polite">
+    <div>
+      <div id="helpBubbleTitle" class="tooltip-title"></div>
+      <div id="helpBubbleText" class="tooltip-text"></div>
+    </div>
+    <button id="closeHelpBubbleBtn" type="button">✕</button>
+  </div>
 
   <div id="pocketOverlay" aria-hidden="true">
     <div id="pocketTitle" style="font-size: 1.15rem; font-weight: 700;">Modalità Tasca Attiva</div>
@@ -524,7 +580,7 @@
         translateToBg: "Traduce in: Български",
         translateToIt: "Traduce in: Italiano",
         syncConnected: "Sync Firebase: connesso",
-        syncRulesErr: "Sync Firebase: verifica regole/connessione",
+        syncRulesErr: "Sync Firebase: regole bloccate (apri .read/.write su Firebase)",
         syncSendErr: "Sync Firebase: errore invio",
         syncWaiting: "Sync Firebase: in attesa di rete...",
         helpBtn: "❓ Guida tasti",
@@ -539,7 +595,7 @@
         autoSpeak: "Leggi traduzione",
         manualPlaceholder: "Oppure scrivi una frase di prova e premi Invia...",
         send: "Invia",
-        voiceSection: "Carattere della voce (locale sul telefono)",
+        voiceSection: "Carattere della voce (menu a tendina)",
         voiceSelect: "Voce di sintesi per la traduzione",
         allVoices: "Mostra tutte le voci del dispositivo",
         pitch: "Tono (Pitch)",
@@ -573,6 +629,7 @@
           continuous: { title: "Ascolto continuo", text: "Se attivo, fa ripartire automaticamente il microfono dopo ogni frase riconosciuta." },
           autoSpeak: { title: "Leggi traduzione", text: "Legge ad alta voce il messaggio tradotto usando la voce del telefono." },
           manual: { title: "Scrittura manuale e Invia", text: "Permette di scrivere una frase a mano e inviarla/tradurla come se l'avessi detta a voce." },
+          voiceDropdown: { title: "Carattere della voce", text: "Apre o chiude il menù a tendina con voce, tono, velocità e volume." },
           voiceSelect: { title: "Voce di sintesi", text: "Sceglie quale voce installata sul telefono userà la sintesi vocale per leggere le frasi." },
           allVoices: { title: "Mostra tutte le voci", text: "Mostra tutte le voci disponibili sul dispositivo anche se non corrispondono alla lingua filtrata." },
           pitch: { title: "Tono (Pitch)", text: "Rende la voce più grave (valori bassi) o più acuta (valori alti)." },
@@ -597,7 +654,7 @@
         translateToBg: "Превежда на: Български",
         translateToIt: "Превежда на: Italiano",
         syncConnected: "Синхронизация Firebase: свързано",
-        syncRulesErr: "Синхронизация Firebase: провери правила/връзка",
+        syncRulesErr: "Синхронизация Firebase: блокирани правила (.read/.write)",
         syncSendErr: "Синхронизация Firebase: грешка при изпращане",
         syncWaiting: "Синхронизация Firebase: чака мрежа...",
         helpBtn: "❓ Помощ за бутоните",
@@ -612,7 +669,7 @@
         autoSpeak: "Чети превода",
         manualPlaceholder: "Или напиши изречение за тест и натисни Изпрати...",
         send: "Изпрати",
-        voiceSection: "Характер на гласа (локално на телефона)",
+        voiceSection: "Характер на гласа (падащо меню)",
         voiceSelect: "Глас за синтез на превода",
         allVoices: "Покажи всички гласове на устройството",
         pitch: "Височина на тона (Pitch)",
@@ -646,6 +703,7 @@
           continuous: { title: "Непрекъснато слушане", text: "Когато е включено, микрофонът автоматично продължава след всяко изречение." },
           autoSpeak: { title: "Чети превода", text: "Прочита на глас преведеното изречение с гласа на телефона." },
           manual: { title: "Ръчно писане и Изпрати", text: "Позволява да напишеш текст на ръка и да го изпратиш и преведеш." },
+          voiceDropdown: { title: "Характер на гласа", text: "Отваря или затваря падащото меню за глас, тон, скорост и сила на звука." },
           voiceSelect: { title: "Глас за синтез", text: "Избира кой инсталиран на телефона глас да чете преводите." },
           allVoices: { title: "Покажи всички гласове", text: "Показва всички гласове на устройството, дори извън филтрирания език." },
           pitch: { title: "Височина на тона (Pitch)", text: "Прави гласа по-нисък или по-висок." },
@@ -718,6 +776,11 @@
 
     function getTargetLang() {
       return myLangEl.value === "it-IT" ? "bg-BG" : "it-IT";
+    }
+
+    function setSyncBadge(text, isError) {
+      syncStatus.textContent = text;
+      syncStatus.classList.toggle("err", Boolean(isError));
     }
 
     function applyUiLanguage() {
@@ -799,10 +862,13 @@
       audioUnlocked = true;
       unlockAudioBtn.textContent = getDict().audioUnlocked;
       if ("speechSynthesis" in window) {
-        const silent = new SpeechSynthesisUtterance(" ");
-        silent.volume = 0.01;
-        window.speechSynthesis.speak(silent);
+        try {
+          const silent = new SpeechSynthesisUtterance(" ");
+          silent.volume = 0.01;
+          window.speechSynthesis.speak(silent);
+        } catch (_) {}
       }
+      setupMediaSession();
     }
 
     function speakText(text, langHint) {
@@ -869,7 +935,7 @@
         body: JSON.stringify(payload)
       });
       if (!res.ok) {
-        throw new Error("Errore scrittura Firebase (" + res.status + ")");
+        throw new Error("HTTP " + res.status);
       }
       const created = await res.json();
       if (created && created.name) {
@@ -911,9 +977,9 @@
           timeLabel: nowLabel,
           createdAt: Date.now()
         });
-        syncStatus.textContent = `${d.syncConnected} (${room})`;
+        setSyncBadge(`${d.syncConnected} (${room})`, false);
       } catch (err) {
-        syncStatus.textContent = d.syncSendErr;
+        setSyncBadge(d.syncSendErr, true);
       }
 
       setStatus(isListening ? d.statusListening : d.statusReady, isListening, isListening ? "statusListening" : "statusReady");
@@ -922,21 +988,28 @@
     async function pollRoomMessages() {
       const d = getDict();
       const room = getSanitizedRoom();
-      const url = `${FIREBASE_DB_URL}/rooms/${encodeURIComponent(room)}/messages.json?orderBy=%22createdAt%22&limitToLast=25`;
+      const url = `${FIREBASE_DB_URL}/rooms/${encodeURIComponent(room)}/messages.json`;
       try {
         const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) {
-          syncStatus.textContent = d.syncRulesErr;
+        if (res.status === 401 || res.status === 403) {
+          setSyncBadge(d.syncRulesErr, true);
           return;
         }
-        syncStatus.textContent = `${d.syncConnected} (${room})`;
+        if (!res.ok) {
+          setSyncBadge(`${d.syncRulesErr} (${res.status})`, true);
+          return;
+        }
+        setSyncBadge(`${d.syncConnected} (${room})`, false);
         const data = await res.json();
         if (!data || typeof data !== "object") {
           initialRoomLoadDone = true;
           return;
         }
 
-        const entries = Object.entries(data).sort((a, b) => (a[1]?.createdAt || 0) - (b[1]?.createdAt || 0));
+        const entries = Object.entries(data)
+          .sort((a, b) => (a[1]?.createdAt || 0) - (b[1]?.createdAt || 0))
+          .slice(-30);
+
         for (const [id, msg] of entries) {
           if (!msg || seenMessageIds.has(id)) continue;
           seenMessageIds.add(id);
@@ -972,7 +1045,7 @@
         }
         initialRoomLoadDone = true;
       } catch (_) {
-        syncStatus.textContent = d.syncWaiting;
+        setSyncBadge(d.syncWaiting, true);
       }
     }
 
@@ -1067,18 +1140,53 @@
       }
     }
 
+    function setupMediaSession() {
+      if (!("mediaSession" in navigator)) return;
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "DuoVoice AI",
+          artist: "Italiano ↔ Български"
+        });
+        navigator.mediaSession.setActionHandler("play", () => {
+          if (!isListening) {
+            continuousToggle.checked = true;
+            startListening();
+          }
+        });
+        navigator.mediaSession.setActionHandler("pause", () => {
+          if (isListening) stopListening();
+          else {
+            continuousToggle.checked = true;
+            startListening();
+          }
+        });
+        navigator.mediaSession.setActionHandler("stop", () => {
+          stopListening();
+        });
+      } catch (_) {}
+    }
+
     function updateMediaSession(state) {
       if (!("mediaSession" in navigator)) return;
       try {
         navigator.mediaSession.playbackState = state;
-        navigator.mediaSession.setActionHandler("play", () => {
-          if (!isListening) startListening();
-        });
-        navigator.mediaSession.setActionHandler("pause", () => {
-          if (isListening) stopListening();
-        });
       } catch (_) {}
     }
+
+    window.addEventListener("keydown", (e) => {
+      if (
+        e.key === "MediaPlayPause" ||
+        e.key === "AudioPlay" ||
+        e.key === "MediaPlay" ||
+        e.code === "MediaPlayPause"
+      ) {
+        e.preventDefault();
+        toggleListening();
+      } else if (e.key === "MediaStop" || e.key === "AudioStop") {
+        e.preventDefault();
+        stopListening();
+      }
+    });
 
     async function requestWakeLock() {
       try {
@@ -1101,10 +1209,8 @@
       helpBubbleTitle.textContent = doc.title;
       helpBubbleText.textContent = doc.text;
       helpBubble.classList.add("visible");
-      helpBubble.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    // Intercetta i tocchi sui controlli quando è attiva la modalità Guida tasti
     document.addEventListener("click", (e) => {
       const target = e.target.closest("[data-help]");
       if (!target) return;
@@ -1188,7 +1294,6 @@
     roomCodeEl.addEventListener("change", restartRoomSync);
 
     myLangEl.addEventListener("change", () => {
-      // Se l'utente non ha forzato manualmente la lingua interfaccia in modo opposto, allineala comodamente o lascia che scelga
       uiLangEl.value = myLangEl.value === "bg-BG" ? "bg" : "it";
       applyUiLanguage();
     });
