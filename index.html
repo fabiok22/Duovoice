@@ -199,7 +199,7 @@
       color: var(--muted);
     }
 
-    select, input[type="text"] {
+    select, input[type="text"], textarea.manual-input {
       width: 100%;
       padding: 10px 12px;
       border-radius: 10px;
@@ -207,6 +207,7 @@
       background: var(--card-2);
       color: var(--text);
       font-size: 0.95rem;
+      font-family: inherit;
     }
 
     .room-row {
@@ -312,7 +313,6 @@
       accent-color: var(--accent);
     }
 
-    /* Box conversazione ampio e comodo */
     .chat-header {
       display: flex;
       align-items: center;
@@ -377,21 +377,27 @@
       line-height: 1.4;
     }
 
+    /* Box di immissione testo alto circa due righe */
     .manual-row {
       display: flex;
       gap: 8px;
+      align-items: stretch;
     }
 
-    .manual-row input[type="text"] {
-      padding: 12px 14px;
+    .manual-row textarea.manual-input {
+      flex: 1;
+      min-height: 62px;
+      line-height: 1.35;
+      padding: 10px 14px;
       font-size: 1rem;
+      resize: vertical;
     }
 
     .manual-row button {
       padding: 12px 18px;
+      align-self: stretch;
     }
 
-    /* Nuvoletta guida sempre visibile in basso */
     .tooltip-card {
       position: fixed;
       left: 12px;
@@ -433,7 +439,6 @@
       outline-offset: 2px;
     }
 
-    /* Modalità Tasca */
     #pocketOverlay {
       position: fixed;
       inset: 0;
@@ -478,7 +483,6 @@
   </header>
 
   <main>
-    <!-- Menu a tendina: Lingue, Stanza e Database -->
     <details id="roomDropdown" class="dropdown-card" data-help="roomDropdown">
       <summary>
         <span id="lblRoomSection">⚙️ Lingue, Stanza & Database</span>
@@ -519,7 +523,6 @@
       </div>
     </details>
 
-    <!-- Comandi rapidi microfono + scrittura manuale -->
     <section class="card">
       <div class="status-bar" data-help="status">
         <div>
@@ -542,18 +545,17 @@
       </div>
 
       <div class="manual-row" data-help="manual">
-        <input id="manualInput" type="text" placeholder="Scrivi una frase qui e premi Invia..." />
+        <textarea id="manualInput" class="manual-input" rows="2" placeholder="Scrivi una frase qui e premi Invia..."></textarea>
         <button id="sendManualBtn" type="button">Invia</button>
       </div>
     </section>
 
-    <!-- Menu a tendina: Carattere della voce -->
     <details id="voiceDropdown" class="dropdown-card" data-help="voiceDropdown">
       <summary id="lblVoiceSection">🎙️ Carattere della voce (menu a tendina)</summary>
       <div class="dropdown-body">
         <div class="grid-2">
           <label data-help="voiceSelect">
-            <span id="lblVoiceSelect">Voce di sintesi per la traduzione</span>
+            <span id="lblVoiceSelect">Voce di sintesi (predefinita: Italiano)</span>
             <select id="voiceSelect"></select>
           </label>
           <label class="toggle-pill" style="align-self: end; justify-content: center;" data-help="allVoices">
@@ -583,7 +585,6 @@
       </div>
     </details>
 
-    <!-- Chat ampia con i nuovi messaggi in cima -->
     <section class="card">
       <div class="chat-header">
         <strong id="lblChatSection">💬 Conversazione & Traduzioni</strong>
@@ -613,6 +614,7 @@
 
   <script>
     const FIREBASE_DB_URL = "https://duovoicechat-default-rtdb.europe-west1.firebasedatabase.app";
+    const DEFAULT_TTS_LANG = "it-IT";
 
     const I18N = {
       it: {
@@ -646,7 +648,7 @@
         manualPlaceholder: "Scrivi una frase qui e premi Invia...",
         send: "Invia",
         voiceSection: "🎙️ Carattere della voce (menu a tendina)",
-        voiceSelect: "Voce di sintesi per la traduzione",
+        voiceSelect: "Voce di sintesi (predefinita: Italiano)",
         allVoices: "Mostra tutte le voci del dispositivo",
         pitch: "Tono (Pitch)",
         rate: "Velocità (Rate)",
@@ -661,10 +663,9 @@
         other: "Altro",
         roomLabel: "Stanza",
         origLabel: "Originale",
-        defaultVoice: "Voce predefinita del dispositivo",
-        recommended: "Consigliata",
-        sampleBg: "Здравей, това е тест на гласа за превод.",
-        sampleIt: "Ciao, questa è una prova della voce per la traduzione.",
+        defaultVoice: "Voce italiana predefinita del dispositivo",
+        recommended: "Italiano",
+        sampleIt: "Ciao, questa è una prova della voce italiana per la lettura dei messaggi.",
         unlockedMsg: "Audio sbloccato",
         helpDocs: {
           helpMode: { title: "Guida tasti", text: "Attiva o disattiva la modalità spiegazione. Quando è attiva, toccando un controllo leggi cosa fa invece di attivarlo." },
@@ -679,15 +680,15 @@
           sync: { title: "Stato sincronizzazione Firebase", text: "Indica se il telefono è collegato al database in tempo reale per inviare e ricevere i messaggi a distanza." },
           mic: { title: "Attiva / Ferma Microfono", text: "Avvia o ferma il riconoscimento vocale per dettare le frasi a voce." },
           continuous: { title: "Ascolto continuo", text: "Riavvia automaticamente il microfono dopo ogni frase riconosciuta, così parli a mani libere senza ripremere il tasto." },
-          autoSpeak: { title: "Leggi traduzione", text: "Legge ad alta voce il messaggio tradotto usando la voce del telefono." },
+          autoSpeak: { title: "Leggi traduzione", text: "Legge ad alta voce il messaggio usando la sintesi vocale predefinita in italiano." },
           manual: { title: "Scrittura manuale e Invia", text: "Permette di scrivere una frase a mano e inviarla/tradurla come se l'avessi detta a voce." },
-          voiceDropdown: { title: "Carattere della voce", text: "Apre o chiude il menù a tendina con voce, tono, velocità e volume." },
-          voiceSelect: { title: "Voce di sintesi", text: "Sceglie quale voce installata sul telefono userà la sintesi vocale per leggere le frasi." },
-          allVoices: { title: "Mostra tutte le voci", text: "Mostra tutte le voci disponibili sul dispositivo anche se non corrispondono alla lingua filtrata." },
+          voiceDropdown: { title: "Carattere della voce", text: "Apre o chiude il menù a tendina con voce italiana, tono, velocità e volume." },
+          voiceSelect: { title: "Voce di sintesi", text: "Mostra le voci italiane del dispositivo (o tutte se spunti l'opzione accanto) per la lettura vocale." },
+          allVoices: { title: "Mostra tutte le voci", text: "Mostra tutte le voci installate sul dispositivo, non solo quelle in italiano." },
           pitch: { title: "Tono (Pitch)", text: "Rende la voce più grave (valori bassi) o più acuta (valori alti)." },
           rate: { title: "Velocità (Rate)", text: "Rallenta o velocizza il ritmo con cui viene letta la frase." },
           volume: { title: "Volume", text: "Regola il volume della lettura vocale." },
-          testVoice: { title: "Prova voce", text: "Riproduce una frase di prova con la voce, il tono, la velocità e il volume impostati." },
+          testVoice: { title: "Prova voce", text: "Riproduce una frase di prova in italiano con la voce, il tono, la velocità e il volume impostati." },
           chat: { title: "Conversazione & Traduzioni", text: "Mostra i messaggi inviati e ricevuti con i più nuovi in cima." }
         }
       },
@@ -722,7 +723,7 @@
         manualPlaceholder: "Напиши изречение тук и натисни Изпрати...",
         send: "Изпрати",
         voiceSection: "🎙️ Характер на гласа (падащо меню)",
-        voiceSelect: "Глас за синтез на превода",
+        voiceSelect: "Глас за синтез (по подразбиране: Италиански)",
         allVoices: "Покажи всички гласове на устройството",
         pitch: "Височина на тона (Pitch)",
         rate: "Скорост (Rate)",
@@ -737,10 +738,9 @@
         other: "Другият",
         roomLabel: "Стая",
         origLabel: "Оригинал",
-        defaultVoice: "Глас по подразбиране на устройството",
-        recommended: "Препоръчан",
-        sampleBg: "Здравей, това е тест на гласа за превод.",
-        sampleIt: "Ciao, questa è una prova della voce per la traduzione.",
+        defaultVoice: "Италиански глас по подразбиране на устройството",
+        recommended: "Италиански",
+        sampleIt: "Ciao, questa è una prova della voce italiana per la lettura dei messaggi.",
         unlockedMsg: "Аудиото е отключено",
         helpDocs: {
           helpMode: { title: "Помощ за бутоните", text: "Включва или изключва режима с пояснения. Когато е включен, при натискане на бутон виждаш какво прави." },
@@ -755,15 +755,15 @@
           sync: { title: "Състояние на Firebase", text: "Показва дали телефонът е свързан с базата данни в реално време за разговори от разстояние." },
           mic: { title: "Включи / Спри микрофона", text: "Пуска или спира гласовото разпознаване, за да говориш с глас." },
           continuous: { title: "Непрекъснато слушане", text: "Автоматично включва микрофона отново след всяко изречение, за да говориш без да натискаш бутона." },
-          autoSpeak: { title: "Чети превода", text: "Прочита на глас преведеното изречение с гласа на телефона." },
+          autoSpeak: { title: "Чети превода", text: "Прочита на глас съобщението с гласов синтез на италиански по подразбиране." },
           manual: { title: "Ръчно писане и Изпрати", text: "Позволява да напишеш текст на ръка и да го изпратиш и преведеш." },
-          voiceDropdown: { title: "Характер на гласа", text: "Отваря или затваря падащото меню за глас, тон, скорост и сила на звука." },
-          voiceSelect: { title: "Глас за синтез", text: "Избира кой инсталиран на телефона глас да чете преводите." },
-          allVoices: { title: "Покажи всички гласове", text: "Показва всички гласове на устройството, дори извън филтрирания език." },
+          voiceDropdown: { title: "Характер на гласа", text: "Отваря или затваря падащото меню за италиански глас, тон, скорост и сила на звука." },
+          voiceSelect: { title: "Глас за синтез", text: "Показва италианските гласове на устройството (или всички при отметка) за гласово четене." },
+          allVoices: { title: "Покажи всички гласове", text: "Показва всички гласове на устройството, не само италианските." },
           pitch: { title: "Височина на тона (Pitch)", text: "Прави гласа по-нисък или по-висок." },
           rate: { title: "Скорост (Rate)", text: "Забавя или забързва четенето на текста." },
           volume: { title: "Сила на звука", text: "Регулира силата на гласовото четене." },
-          testVoice: { title: "Тест на гласа", text: "Прочита пробно изречение с избрания глас, тон, скорост и сила на звука." },
+          testVoice: { title: "Тест на гласа", text: "Прочита пробно изречение на италиански с избрания глас, тон, скорост и сила на звука." },
           chat: { title: "Разговор и преводи", text: "Показва съобщенията с най-новите най-отгоре." }
         }
       }
@@ -936,21 +936,18 @@
       const d = getDict();
       const target = getTargetLang();
       targetLangBadge.textContent = target === "bg-BG" ? d.translateToBg : d.translateToIt;
-      populateVoices();
     }
 
     function populateVoices() {
       if (!("speechSynthesis" in window)) return;
       const d = getDict();
       availableVoices = window.speechSynthesis.getVoices() || [];
-      const target = getTargetLang();
-      const shortLang = target.slice(0, 2).toLowerCase();
 
-      const filtered = showAllVoicesToggle.checked
+      const itVoices = availableVoices.filter(v => (v.lang || "").toLowerCase().startsWith("it"));
+      const list = showAllVoicesToggle.checked
         ? availableVoices
-        : availableVoices.filter(v => (v.lang || "").toLowerCase().startsWith(shortLang));
+        : (itVoices.length ? itVoices : availableVoices);
 
-      const list = filtered.length ? filtered : availableVoices;
       voiceSelect.innerHTML = "";
 
       if (!list.length) {
@@ -964,7 +961,8 @@
       list.forEach((v, idx) => {
         const opt = document.createElement("option");
         opt.value = String(availableVoices.indexOf(v));
-        opt.textContent = `${v.name} (${v.lang})${idx === 0 ? " • " + d.recommended : ""}`;
+        const isIt = (v.lang || "").toLowerCase().startsWith("it");
+        opt.textContent = `${v.name} (${v.lang})${idx === 0 && isIt ? " • " + d.recommended : ""}`;
         voiceSelect.appendChild(opt);
       });
     }
@@ -975,6 +973,7 @@
       if ("speechSynthesis" in window) {
         try {
           const silent = new SpeechSynthesisUtterance(" ");
+          silent.lang = DEFAULT_TTS_LANG;
           silent.volume = 0.01;
           window.speechSynthesis.speak(silent);
         } catch (_) {}
@@ -990,8 +989,11 @@
         const selectedIdx = parseInt(voiceSelect.value, 10);
         if (!Number.isNaN(selectedIdx) && availableVoices[selectedIdx]) {
           utter.voice = availableVoices[selectedIdx];
+        } else {
+          const fallbackIt = availableVoices.find(v => (v.lang || "").toLowerCase().startsWith("it"));
+          if (fallbackIt) utter.voice = fallbackIt;
         }
-        utter.lang = (utter.voice && utter.voice.lang) || langHint || myLangEl.value;
+        utter.lang = (utter.voice && utter.voice.lang) || langHint || DEFAULT_TTS_LANG;
         utter.pitch = parseFloat(pitchRange.value);
         utter.rate = parseFloat(rateRange.value);
         utter.volume = parseFloat(volRange.value);
@@ -1031,7 +1033,6 @@
         <div class="msg-orig">${d.origLabel}: ${escapeHtml(origText)}</div>
         <div class="msg-trans">${escapeHtml(transText)}</div>
       `;
-      // Inserisce i messaggi più recenti in cima alla lista
       chatBox.prepend(div);
       chatBox.scrollTop = 0;
     }
@@ -1160,7 +1161,7 @@
           });
 
           if (autoSpeakToggle.checked && textToSpeak) {
-            speakText(textToSpeak, myLangEl.value);
+            speakText(textToSpeak, DEFAULT_TTS_LANG);
           }
         }
         initialRoomLoadDone = true;
@@ -1361,7 +1362,7 @@
 
     unlockAudioBtn.addEventListener("click", () => {
       unlockAudio();
-      speakText(getDict().unlockedMsg, myLangEl.value);
+      speakText(getDict().unlockedMsg, DEFAULT_TTS_LANG);
     });
 
     pocketBtn.addEventListener("click", async () => {
@@ -1401,7 +1402,8 @@
     });
 
     manualInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
         sendManualBtn.click();
       }
     });
@@ -1434,9 +1436,7 @@
 
     testVoiceBtn.addEventListener("click", () => {
       unlockAudio();
-      const d = getDict();
-      const sample = getTargetLang() === "bg-BG" ? d.sampleBg : d.sampleIt;
-      speakText(sample, getTargetLang());
+      speakText(getDict().sampleIt, DEFAULT_TTS_LANG);
     });
 
     if ("speechSynthesis" in window) {
